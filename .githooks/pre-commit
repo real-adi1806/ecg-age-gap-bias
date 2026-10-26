@@ -1,0 +1,38 @@
+#!/bin/sh
+# Refuse to commit the dataset, or anything else large, by accident.
+#
+# .gitignore is the first line of defence. This is the second, because a
+# `git add -f` or a rule someone deleted gets past .gitignore and does not get
+# past this. It is not active until you switch it on, once, per clone:
+#
+#     git config core.hooksPath .githooks
+#
+# To bypass it deliberately: git commit --no-verify
+
+limit=1000000
+status=0
+
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$staged" ] && exit 0
+
+for f in $staged; do
+    [ -f "$f" ] || continue
+    case "$f" in
+        *.csv|*.hdf5|*.h5|*.parquet|*.feather|*.zip|*.tar|*.tar.gz|*.tgz|*.7z)
+            echo "pre-commit: refusing to commit a data file: $f"
+            status=1
+            ;;
+    esac
+    size=$(wc -c < "$f" 2>/dev/null | tr -d ' ')
+    if [ -n "$size" ] && [ "$size" -gt "$limit" ]; then
+        echo "pre-commit: refusing to commit a file over 1 MB: $f ($size bytes)"
+        status=1
+    fi
+done
+
+if [ "$status" -ne 0 ]; then
+    echo ""
+    echo "The dataset is downloaded, not committed. See README.md."
+    echo "If you are certain, re-run with --no-verify."
+fi
+exit $status

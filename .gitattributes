@@ -1,0 +1,9 @@
+# Normalise line endings so a clone on Windows and a clone on Linux produce
+# byte-identical working trees for the text files, and so the shell hook in
+# .githooks/ keeps LF endings and stays executable by /bin/sh.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.pdf binary
+*.csv binary

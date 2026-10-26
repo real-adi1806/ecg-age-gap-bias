@@ -1,0 +1,66 @@
+# ---------------------------------------------------------------------------
+# THE DATA IS NEVER COMMITTED.
+#
+# exams.csv is 35.5 MB and belongs to the CODE-15% deposit on Zenodo, which is
+# where anyone reproducing this should get it from. Redistributing a copy here
+# would add a second, unversioned, drifting source of the same file for no
+# benefit. The download is one command and it is checksum verified.
+#
+# The rules below are deliberately broader than "data/exams.csv": any CSV, any
+# HDF5, any archive, anywhere in the tree, at any depth. Getting this wrong is
+# a push that cannot be taken back.
+# ---------------------------------------------------------------------------
+data/*
+!data/.gitignore
+*.csv
+*.csv.part
+*.hdf5
+*.h5
+*.parquet
+*.feather
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+
+# Generated output. Regenerate it with one command instead of committing it.
+results/*
+!results/.gitignore
+*.part
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.python-version
+
+# Tooling and editors
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.idea/
+.vscode/
+*.swp
+*~
+
+# Operating system
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Anything that looks like a credential, so a stray file cannot be added by hand
+.env
+.env.*
+*.pem
+*.key
+*.p12
+credentials.json
+secrets.*

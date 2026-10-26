@@ -1,0 +1,5 @@
+# Belt and braces. The parent .gitignore already excludes this whole directory;
+# this file makes the exclusion survive someone removing that rule, and it keeps
+# the directory itself in the tree so the download has somewhere to land.
+*
+!.gitignore

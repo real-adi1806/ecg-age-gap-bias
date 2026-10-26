@@ -1,0 +1,27 @@
+# ---------------------------------------------------------------------------
+# THE ANALYSIS NEEDS NOTHING FROM THIS FILE.
+#
+# ecg_age_bias.py, cox_model.py and verify.py are standard library only. They
+# run on a clean Python 3.9 or newer with nothing installed, which is the whole
+# point: a reproduction that requires a working scientific Python stack is a
+# reproduction that a reviewer will not run.
+#
+#     python ecg_age_bias.py        <- needs none of the below
+#     python cox_model.py           <- needs none of the below
+#     python verify.py              <- needs none of the below
+#
+# The pins below exist for ONE optional script, crosscheck_lifelines.py, which
+# re-fits the Cox models with an established library so that this repository's
+# own implementation can be compared against a reference rather than only
+# against itself.
+#
+#     python -m pip install -r requirements.txt
+#     python crosscheck_lifelines.py
+#
+# Versions are pinned to the ones the cross-check was actually run against, on
+# Python 3.13.7, not to the newest available. These pins need Python 3.12 or
+# newer (numpy 2.5.3 will not install on 3.11); the three scripts above do not.
+# ---------------------------------------------------------------------------
+lifelines==0.30.3
+pandas==2.3.3
+numpy==2.5.3

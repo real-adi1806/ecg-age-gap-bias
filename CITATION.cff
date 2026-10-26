@@ -1,0 +1,92 @@
+cff-version: 1.2.0
+message: >-
+  If you use this code, please cite the software below AND the dataset and the
+  paper being replicated, both of which are listed under references.
+title: "Age-regression bias in the AI ECG age gap: a replication on CODE-15%"
+abstract: >-
+  A replication, on the Brazilian CODE-15% cohort, of the finding that the
+  AI-predicted ECG age gap is confounded by chronological age, and that
+  correcting the confound reverses the direction of the crude survival result.
+  A linear age-bias correction was applied by Hirota et al. (Japanese cohort,
+  2023), and Barthels et al. (Belgian cohort, 2025) used it with mortality as
+  the outcome; this repository repeats Barthels' method on CODE-15%. It adds an age- and sex-adjusted Cox comparison, a sex-fairness result
+  for the pooled correction, and a null result for correcting within sex. Runs
+  on the Python standard library with no third-party dependencies.
+type: software
+authors:
+  - given-names: Adithya
+    family-names: Krishnan
+    affiliation: "None at the time of this analysis"
+keywords:
+  - electrocardiography
+  - biological age
+  - regression to the mean
+  - replication
+  - model calibration
+  - survival analysis
+license: MIT
+date-released: "2026-09-22"
+references:
+  - type: data
+    title: "CODE-15%: a large scale annotated dataset of 12-lead ECGs"
+    authors:
+      - family-names: Ribeiro
+        given-names: "Antonio H."
+      - family-names: Paixao
+        given-names: "Gabriela M. M."
+      - family-names: Lima
+        given-names: "Emilly M."
+      - family-names: Horta Ribeiro
+        given-names: "Manoel"
+    doi: 10.5281/zenodo.4916206
+    license: CC-BY-4.0
+  - type: article
+    title: >-
+      Artificial intelligence-predicted ECG age gap as a biomarker:
+      bias-adjusted correlation with mortality and cardiovascular risk factors
+    authors:
+      - family-names: Barthels
+        given-names: M.
+      - family-names: Verhofstadt
+        given-names: E.
+      - family-names: Delgado
+        given-names: "I. B."
+    journal: "European Heart Journal Digital Health"
+    volume: 7
+    issue: 2
+    year: 2026
+    doi: 10.1093/ehjdh/ztaf137
+    notes: "The method repeated here."
+  - type: article
+    title: >-
+      Cardiovascular events and artificial intelligence-predicted age using
+      12-lead electrocardiograms
+    authors:
+      - family-names: Hirota
+        given-names: N.
+      - family-names: Suzuki
+        given-names: S.
+      - family-names: Motogi
+        given-names: J.
+    journal: "International Journal of Cardiology. Heart & Vasculature"
+    volume: 44
+    start: 101172
+    year: 2023
+    doi: 10.1016/j.ijcha.2023.101172
+    notes: "Applied a linear bias correction to AI-ECG predicted age first."
+  - type: article
+    title: >-
+      Deep neural network-estimated electrocardiographic age as a mortality
+      predictor
+    authors:
+      - family-names: Lima
+        given-names: "Emilly M."
+      - family-names: Ribeiro
+        given-names: "Antonio H."
+      - family-names: Paixao
+        given-names: "Gabriela M. M."
+    journal: "Nature Communications"
+    volume: 12
+    start: 5117
+    year: 2021
+    doi: 10.1038/s41467-021-25351-7

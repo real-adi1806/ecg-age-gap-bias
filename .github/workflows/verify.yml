@@ -1,0 +1,62 @@
+name: verify
+
+# Two jobs on purpose.
+#
+# `checks` runs on every push. It needs no data, finishes in seconds, and covers
+# the things that break silently: repository hygiene, and whether the code still
+# runs on the oldest Python the README claims support for.
+#
+# `reproduce` downloads the 35.5 MB dataset and runs the whole analysis, so it
+# is on a weekly schedule and a manual trigger rather than on every push. There
+# is no reason to fetch a public archive on every commit, and a reproducibility
+# claim that is only tested once is not a claim.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: hygiene and python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: repository hygiene
+        run: python verify.py --hygiene
+      - name: every module imports and compiles
+        run: |
+          python -m compileall -q .
+          python -c "import ecg_age_bias, cox_model, verify; print('imports ok')"
+
+  reproduce:
+    name: full reproduce from the published data
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: download, checksum and analyse
+        run: python ecg_age_bias.py
+      - name: assert every number quoted in README.md
+        run: python verify.py
+      - name: keep the machine-readable results
+        uses: actions/upload-artifact@v4
+        with:
+          name: results
+          path: results/*.json
