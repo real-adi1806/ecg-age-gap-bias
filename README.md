@@ -1,4 +1,10 @@
-# Age-regression bias in the AI ECG age gap: a replication on CODE-15%
+# ecg-age-gap-bias
+
+[![verify](https://github.com/real-adi1806/ecg-age-gap-bias/actions/workflows/verify.yml/badge.svg)](https://github.com/real-adi1806/ecg-age-gap-bias/actions/workflows/verify.yml)
+[![licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+[![python 3.9+, no dependencies](https://img.shields.io/badge/python-3.9%2B%2C%20no%20dependencies-blue.svg)](requirements.txt)
+
+**Age-regression bias in the AI ECG age gap: a replication on CODE-15%.**
 
 **The AI ECG age gap is confounded by chronological age itself (r = -0.3842 on 233,647 Brazilian patients), and the confound is large enough to reverse the crude survival result.** Split this cohort the way the 2021 paper that made the biomarker famous split it, and the older-looking hearts die *less* (3.02% against 4.57%), because the raw split is really sorting people by age: mean age 42.2 in the older-looking group against 62.9 in the younger-looking one. Regress the gap on age, keep the residual, and the direction reverses to 5.14% against 2.57% with the age imbalance gone (52.7 against 52.2).
 
@@ -10,9 +16,11 @@
 
 ---
 
-## Run it
+## Quick start
 
 ```
+git clone https://github.com/real-adi1806/ecg-age-gap-bias
+cd ecg-age-gap-bias
 python ecg_age_bias.py
 ```
 
@@ -292,6 +300,21 @@ any other ECG age model. Crude rates ignore censoring; the Cox models in section
 3 do not, and should be preferred. Deaths are from record linkage and cause of
 death is not available. There is no external validation set in this repository.
 
+## Using the correction on another cohort
+
+The scripts are locked to the published `exams.csv` on purpose: they check its
+md5 and refuse any other file, so the numbers on this page cannot come from a
+different file by accident. The correction itself needs nothing from here. With
+chronological age and predicted age for each person in your own cohort:
+
+1. Compute the gap: predicted age minus chronological age.
+2. Fit it on chronological age by ordinary least squares: `gap = a + b x age`.
+3. Use the residual, `gap - (a + b x age)`, in place of the raw gap.
+
+On CODE-15% the fit is a = 11.9755 and b = -0.2131 (section 1). Fit a and b on
+your own cohort rather than reusing these. Then check what section 4 checks: a
+fit on everyone can leave the corrected gap offset between men and women.
+
 ---
 
 ## Data
@@ -425,6 +448,18 @@ redistributed here. Every result regenerates from it with `python verify.py`.
    (2023). [doi 10.1016/j.ijcha.2023.101172](https://doi.org/10.1016/j.ijcha.2023.101172).
    PMID 36654885, PMC9841236. Open access. Applied a linear bias correction to
    the predicted age on a Japanese single-centre cohort.
+
+## Citing it
+
+GitHub's "Cite this repository" button (from `CITATION.cff`) gives the citation.
+Please cite the dataset and the papers this replicates as well; they are listed
+in the same file and under References above.
+
+## Contributing
+
+Bug reports and questions are welcome as issues. If a number here does not
+reproduce on your machine, an issue with the output of `python verify.py` and
+your Python version is the most useful thing to send.
 
 ## Licence
 
