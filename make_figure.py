@@ -32,7 +32,7 @@ parts = [
     f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" '
     'font-family="system-ui, sans-serif" font-size="13">',
     f'<rect width="{W}" height="{H}" fill="#ffffff"/>',
-    '<text x="70" y="28" font-size="16" font-weight="600">Crude death rate by AI ECG age gap group, '
+    '<text x="70" y="28" font-size="16" font-weight="600">Share who died, by AI ECG age gap group, '
     'before and after correcting for age</text>',
     f'<text x="70" y="48" fill="#444">CODE-15%, n = {res["cohort"]["n_patients"]:,} patients. '
     'Whiskers are 95% intervals.</text>',

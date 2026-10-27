@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" font-family="system-ui, sans-serif" font-size="13">
 <rect width="720" height="420" fill="#ffffff"/>
-<text x="70" y="28" font-size="16" font-weight="600">Crude death rate by AI ECG age gap group, before and after correcting for age</text>
+<text x="70" y="28" font-size="16" font-weight="600">Share who died, by AI ECG age gap group, before and after correcting for age</text>
 <text x="70" y="48" fill="#444">CODE-15%, n = 233,647 patients. Whiskers are 95% intervals.</text>
 <line x1="70" x2="690" y1="330.0" y2="330.0" stroke="#e5e5e5"/>
 <text x="62" y="334.0" text-anchor="end" fill="#444">0%</text>

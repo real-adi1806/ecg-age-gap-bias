@@ -328,6 +328,9 @@ def fit(rows, covariates, names, max_iter=40, score_tol=SCORE_TOL, verbose=False
         "iterations": iters,
         "max_abs_score_at_optimum": max(abs(g) for g in grad),
         "information_positive_definite": is_positive_definite(info),
+        # Kept so that a contrast between two terms can be given an interval.
+        "term_order": list(names),
+        "vcov": cov,
         "terms": {},
     }
     for k, nm in enumerate(names):
@@ -406,11 +409,39 @@ def selftest_optimum(model):
 # ---------------------------------------------------------------------------
 # The models
 # ---------------------------------------------------------------------------
-def group_flags(rows, key, thr):
+def group_flags(rows, key, thr, lower=None, name=None):
+    """
+    Older and younger indicators, with the within group as the reference.
+    older is key > thr and younger is key < lower, which defaults to -thr. The
+    flags are called name + "_older" and name + "_younger", name defaulting to
+    key, so a second cut on the same key can sit beside the first.
+    """
+    lo = -thr if lower is None else lower
+    stem = key if name is None else name
     for r in rows:
         v = r[key]
-        r[key + "_older"] = 1.0 if v > thr else 0.0
-        r[key + "_younger"] = 1.0 if v < -thr else 0.0
+        r[stem + "_older"] = 1.0 if v > thr else 0.0
+        r[stem + "_younger"] = 1.0 if v < lo else 0.0
+
+
+def contrast(model, a, b):
+    """
+    Hazard ratio of term a against term b in one fitted model, exp(beta_a -
+    beta_b), with its interval from the covariance: var_a + var_b - 2 cov_ab.
+    Used for older-looking against younger-looking directly, rather than each
+    against the within group.
+    """
+    i, j = model["term_order"].index(a), model["term_order"].index(b)
+    v = model["vcov"]
+    diff = model["terms"][a]["coef"] - model["terms"][b]["coef"]
+    se = math.sqrt(v[i][i] + v[j][j] - 2.0 * v[i][j])
+    return {
+        "of": a, "against": b, "coef": diff, "se": se,
+        "hr": math.exp(diff),
+        "hr_lo95": math.exp(diff - 1.959963984540054 * se),
+        "hr_hi95": math.exp(diff + 1.959963984540054 * se),
+        "z": diff / se, "p": norm_sf(diff / se),
+    }
 
 
 def print_model(title, model, note=""):
@@ -465,9 +496,14 @@ def main(argv=None):
         print("\n    NOTE: fitting on a random subsample of %d, not the full cohort."
               % len(rows))
 
-    base.bias_correct(rows)
+    slope, _ = base.bias_correct(rows)
     group_flags(rows, "pad", args.threshold)
     group_flags(rows, "pad_bc", args.threshold)
+    # The corrected gap cut at the shares the raw +/- threshold cut selects. The
+    # same function as ecg_age_bias.py, so both files use the same cut points.
+    cuts = base.share_matched_cuts(rows, "pad", "pad_bc", args.threshold)
+    group_flags(rows, "pad_bc", cuts["upper_cut_years"], lower=cuts["lower_cut_years"],
+                name="pad_bc_matched")
 
     sex = lambda r: 1.0 if r["male"] else 0.0
     age = lambda r: r["age"]
@@ -503,12 +539,49 @@ def main(argv=None):
          "age (per year)", "male"],
         verbose=args.verbose,
     )
+    models["corrected_categorical_share_matched"] = fit(
+        rows,
+        [lambda r: r["pad_bc_matched_older"], lambda r: r["pad_bc_matched_younger"], age, sex],
+        ["PAD_bc older (matched)", "PAD_bc younger (matched)",
+         "age (per year)", "male"],
+        verbose=args.verbose,
+    )
     models["raw_continuous"] = fit(
         rows, [lambda r: r["pad"], age, sex],
         ["PAD (per year)", "age (per year)", "male"], verbose=args.verbose)
     models["corrected_continuous"] = fit(
         rows, [lambda r: r["pad_bc"], age, sex],
         ["PAD_bc (per year)", "age (per year)", "male"], verbose=args.verbose)
+
+    # Older-looking against younger-looking directly, in each categorical model.
+    pairs_ovy = {
+        "raw_categorical": ("PAD > +%g (older)" % args.threshold,
+                            "PAD < -%g (younger)" % args.threshold),
+        "corrected_categorical": ("PAD_bc > +%g (older)" % args.threshold,
+                                  "PAD_bc < -%g (younger)" % args.threshold),
+        "corrected_categorical_share_matched": ("PAD_bc older (matched)",
+                                                "PAD_bc younger (matched)"),
+    }
+    for key, (a, b) in pairs_ovy.items():
+        models[key]["older_vs_younger"] = contrast(models[key], a, b)
+
+    # Check the contrast arithmetic by refitting with younger as the reference,
+    # where older-versus-younger is an ordinary coefficient with its own se.
+    refit = fit(
+        rows,
+        [lambda r: r["pad_bc_matched_older"],
+         lambda r: 1.0 - r["pad_bc_matched_older"] - r["pad_bc_matched_younger"], age, sex],
+        ["older vs younger", "within vs younger", "age (per year)", "male"],
+        verbose=args.verbose,
+    )
+    via_cov = models["corrected_categorical_share_matched"]["older_vs_younger"]
+    direct = refit["terms"]["older vs younger"]
+    checks["contrast_vs_refit"] = {
+        "coef_via_covariance": via_cov["coef"], "coef_refit": direct["coef"],
+        "se_via_covariance": via_cov["se"], "se_refit": direct["se"],
+        "passed": (abs(via_cov["coef"] - direct["coef"]) < 1e-6
+                   and abs(via_cov["se"] - direct["se"]) < 1e-6),
+    }
 
     checks["optimum_raw_categorical"] = selftest_optimum(models["raw_categorical"])
     o = checks["optimum_raw_categorical"]
@@ -535,7 +608,8 @@ def main(argv=None):
     print("\n    Published 1.79 / 0.78 against this run %.3f / %.3f."
           % (got_older, got_younger))
     print("    These are close but they are not expected to be identical: the")
-    print("    published analysis used 218,169 participants and this one uses")
+    print("    published analysis used %d participants and this one uses"
+          % base.PUBLISHED_COHORT["n"])
     print("    %d, so the cohort definitions differ. See README.md."
           % models["raw_categorical"]["n"])
 
@@ -543,34 +617,75 @@ def main(argv=None):
     print_model("    Cox: corrected PAD group + age + sex",
                 models["corrected_categorical"])
 
+    print("\n[2b] THE SAME MODEL, CORRECTED GAP CUT AT THE RAW CUT'S SHARES")
+    print("    older is PAD_bc > %+.3f (%.2f%% of patients), younger is PAD_bc < %+.3f"
+          % (cuts["upper_cut_years"], cuts["older_share_pct"], cuts["lower_cut_years"]))
+    print("    (%.2f%%), the same shares the raw +/- %g cut selects."
+          % (cuts["younger_share_pct"], args.threshold))
+    print_model("    Cox: corrected PAD group (share-matched) + age + sex",
+                models["corrected_categorical_share_matched"])
+
+    print("\n    Older-looking against younger-looking directly, adjusted for age and sex:")
+    for key, label in (("raw_categorical", "raw gap, +/- %g" % args.threshold),
+                       ("corrected_categorical", "corrected gap, +/- %g" % args.threshold),
+                       ("corrected_categorical_share_matched",
+                        "corrected gap, share-matched")):
+        c = models[key]["older_vs_younger"]
+        print("      %-30s HR %5.3f (%5.3f, %5.3f)" % (label, c["hr"], c["hr_lo95"], c["hr_hi95"]))
+    cr = checks["contrast_vs_refit"]
+    print("    contrast from the covariance against a refit with younger as reference:")
+    print("      coef %.9f vs %.9f, se %.9f vs %.9f  %s"
+          % (cr["coef_via_covariance"], cr["coef_refit"], cr["se_via_covariance"],
+             cr["se_refit"], "PASS" if cr["passed"] else "FAIL"))
+
     print("\n[3] CONTINUOUS, PER YEAR OF GAP")
     print_model("    Cox: raw PAD continuous + age + sex", models["raw_continuous"])
     print_model("    Cox: corrected PAD continuous + age + sex",
                 models["corrected_continuous"])
 
-    hr_raw = models["raw_continuous"]["terms"]["PAD (per year)"]["hr"]
-    hr_bc = models["corrected_continuous"]["terms"]["PAD_bc (per year)"]["hr"]
+    raw_c = models["raw_continuous"]
+    bc_c = models["corrected_continuous"]
+    hr_raw = raw_c["terms"]["PAD (per year)"]["hr"]
+    hr_bc = bc_c["terms"]["PAD_bc (per year)"]["hr"]
+    b_gap = raw_c["terms"]["PAD (per year)"]["coef"]
+    # PAD_bc = PAD - (intercept + slope * age), so
+    #   b * PAD_bc + c_bc * age  =  b * PAD + (c_bc - b * slope) * age - b * intercept.
+    # The constant drops out of a Cox model, so both fits share b and the
+    # log-likelihood, and the age coefficients differ by exactly -b * slope.
+    shift_observed = (raw_c["terms"]["age (per year)"]["coef"]
+                      - bc_c["terms"]["age (per year)"]["coef"])
+    shift_expected = -b_gap * slope
+    identical = abs(hr_raw - hr_bc) < 1e-6
     checks["continuous_identity"] = {
         "hr_raw_per_year": hr_raw,
         "hr_corrected_per_year": hr_bc,
         "abs_difference": abs(hr_raw - hr_bc),
-        "identical_to_6dp": abs(hr_raw - hr_bc) < 1e-6,
+        "identical_to_6dp": identical,
+        "loglik_difference": abs(raw_c["loglik"] - bc_c["loglik"]),
+        "age_coef_shift_observed": shift_observed,
+        "age_coef_shift_expected": shift_expected,
+        "passed": (identical
+                   and abs(raw_c["loglik"] - bc_c["loglik"]) < 1e-6
+                   and abs(shift_observed - shift_expected) < 1e-6),
     }
-    print("\n    NOTE, and it is the most useful thing on this page.")
+    ci = checks["continuous_identity"]
+    print("\n    NOTE: an algebraic identity, used here only as a check on the code.")
     print("    The two continuous hazard ratios are %.6f and %.6f." % (hr_raw, hr_bc))
-    print("    They are the same number, and they have to be. PAD_bc is PAD minus a")
-    print("    linear function of age, so in a model that already adjusts for age")
-    print("    linearly the two are the same fit with the age coefficient moved.")
-    print("    The bias correction therefore changes NOTHING in a continuous")
-    print("    age-adjusted model, and changes the direction completely in a crude")
-    print("    or thresholded one, because thresholding is not linear.")
-    print("    Barthels et al. found the same: HR 1.020 per year for BOTH PAD and PAD_bc")
-    print("    in their age-adjusted model (about 1.4 per cent after adding risk factors).")
-    print("    So the confound matters for how the biomarker is REPORTED and")
-    print("    THRESHOLDED, not for whether an adjusted continuous model detects it.")
+    print("    They must be equal. PAD_bc is PAD minus a linear function of age, so")
+    print("      b * PAD_bc + c * age  =  b * PAD + (c - b * slope) * age + constant,")
+    print("    and a Cox model already adjusted for age fits the same model either way,")
+    print("    with the age coefficient moved and the constant absorbed. That is not")
+    print("    a finding about the data. What it does test is this implementation:")
+    print("      log-likelihoods differ by          %.3g" % ci["loglik_difference"])
+    print("      age coefficient shift, observed    %+.9f" % shift_observed)
+    print("      age coefficient shift, -b * slope  %+.9f" % shift_expected)
+    print("    %s" % ("PASS" if ci["passed"] else "FAIL"))
+    print("    Barthels et al. report the same equality, HR 1.020 per year for both PAD")
+    print("    and PAD_bc in their age-adjusted model, as the algebra requires.")
 
     payload = {"models": models, "checks": checks,
                "threshold_years": args.threshold,
+               "share_matched_cuts": cuts,
                "subsample": args.subsample or None}
     os.makedirs(os.path.dirname(os.path.abspath(args.json)), exist_ok=True)
     with open(args.json, "w", encoding="utf-8") as fh:

@@ -40,6 +40,15 @@ This script therefore asserts two sharper things instead:
      either this code found at least as good a fit, or it did not.
 
 Coefficient differences are still printed, for information.
+
+KAPLAN-MEIER
+------------
+The Kaplan-Meier estimates in ecg_age_bias.py are also compared with lifelines'
+KaplanMeierFitter, for the six groups README.md tabulates, at the same two
+horizons. Kaplan-Meier has no optimiser and no stopping rule, so here a plain
+tolerance IS the right test: the estimate and both ends of the interval must
+agree to 1e-9 percentage points. lifelines' interval is the exponential
+Greenwood form ("log-log" in R), which is the one ecg_age_bias.py implements.
 """
 
 import sys
@@ -48,12 +57,13 @@ import cox_model
 import ecg_age_bias as base
 
 SE_TOL = 1e-8
+KM_TOL = 1e-9  # percentage points
 
 
 def main():
     try:
         import pandas as pd
-        from lifelines import CoxPHFitter
+        from lifelines import CoxPHFitter, KaplanMeierFitter
         import lifelines
     except ImportError:
         print("lifelines is not installed. This check is optional:")
@@ -132,13 +142,45 @@ def main():
         print()
 
     print("worst standard-error disagreement: %.3e  (tolerance %g)" % (worst_se, SE_TOL))
+
+    # Kaplan-Meier, the same six groups README.md tabulates.
+    cuts = base.share_matched_cuts(rows, "pad", "pad_bc", base.DEFAULT_THRESHOLD)
+    cox_model.group_flags(rows, "pad_bc", cuts["upper_cut_years"],
+                          lower=cuts["lower_cut_years"], name="pad_bc_matched")
+    horizons = list(base.KM_HORIZONS)
+    worst_km = 0.0
+    print("\nKaplan-Meier cumulative mortality, % (estimate, lower, upper)")
+    for stem in ("pad", "pad_bc", "pad_bc_matched"):
+        for grp in ("older", "younger"):
+            group = [r for r in rows if r[stem + "_" + grp]]
+            mine = base.kaplan_meier(group)
+            kmf = KaplanMeierFitter()
+            kmf.fit([r["timey"] for r in group],
+                    event_observed=[1 if r["died"] else 0 for r in group],
+                    timeline=horizons)
+            for h in horizons:
+                s = float(kmf.survival_function_.loc[h].iloc[0])
+                ends = sorted(float(v) for v in kmf.confidence_interval_.loc[h])
+                theirs = (100 * (1 - s), 100 * (1 - ends[1]), 100 * (1 - ends[0]))
+                m = mine["%g" % h]
+                ours = (m["pct"], m["ci95_pct"][0], m["ci95_pct"][1])
+                d = max(abs(a - b) for a, b in zip(ours, theirs))
+                worst_km = max(worst_km, d)
+                if d > KM_TOL:
+                    failures.append(("Kaplan-Meier %s %s at %gy" % (stem, grp, h), d))
+                print("  %-15s %-8s %gy  this repo %.6f (%.6f, %.6f)  lifelines %.6f "
+                      "(%.6f, %.6f)  diff %.2e" % ((stem, grp, h) + ours + theirs + (d,)))
+    print("worst Kaplan-Meier disagreement: %.3e points  (tolerance %g)"
+          % (worst_km, KM_TOL))
+
     if failures:
         print("FAIL")
         for f in failures:
             print("   ", f)
         return 1
-    print("PASS: standard errors match a reference implementation, and this "
-          "repository's fit is never worse on the likelihood.")
+    print("PASS: standard errors match a reference implementation, this "
+          "repository's fit is never worse on the likelihood, and the "
+          "Kaplan-Meier estimates and intervals match.")
     return 0
 
 

@@ -7,8 +7,8 @@ PYTHON ?= python
 
 help:
 	@echo "reproduce   download the data if needed, run the analysis, verify it"
-	@echo "analysis    the replication itself, about 10 seconds"
-	@echo "cox         age- and sex-adjusted Cox models, about 40 seconds"
+	@echo "analysis    the replication itself, under 20 seconds"
+	@echo "cox         age- and sex-adjusted Cox models, about a minute"
 	@echo "selftest    correctness checks on the Cox implementation only"
 	@echo "verify      assert every number quoted in README.md, plus hygiene"
 	@echo "hygiene     repository hygiene checks only, no data needed"

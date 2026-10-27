@@ -6,11 +6,11 @@
 
 **Age-regression bias in the AI ECG age gap: a replication on CODE-15%.**
 
-**The AI ECG age gap is confounded by chronological age itself (r = -0.3842 on 233,647 Brazilian patients), and the confound is large enough to reverse the crude survival result.** Split this cohort the way the 2021 paper that made the biomarker famous split it, and the older-looking hearts die *less* (3.02% against 4.57%), because the raw split is really sorting people by age: mean age 42.2 in the older-looking group against 62.9 in the younger-looking one. Regress the gap on age, keep the residual, and the direction reverses to 5.14% against 2.57% with the age imbalance gone (52.7 against 52.2).
+**The AI ECG age gap is confounded by chronological age itself (r = -0.3842 on 233,647 Brazilian patients), and the confound is large enough to reverse the crude survival result.** Split this cohort the way the 2021 paper that made the biomarker famous split it, and the older-looking hearts die *less* (3.02% against 4.57%), because the raw split is really sorting people by age: mean age 42.2 in the older-looking group against 62.9 in the younger-looking one. Regress the gap on age, keep the residual, and the direction reverses to 5.14% against 2.57%. The age balance that comes with it (52.7 against 52.2) is built into the correction, so it proves nothing on its own. The direction of the mortality difference is not built in, and it holds per person-year of follow-up (14.07 against 6.83 deaths per 1,000 person-years) and with the corrected groups cut to the same sizes as the raw ones.
 
 **This is a replication, not a discovery.** Correcting the AI-ECG predicted age for its regression on chronological age was applied by Hirota et al. on a Japanese cohort ([doi 10.1016/j.ijcha.2023.101172](https://doi.org/10.1016/j.ijcha.2023.101172), 2023) and, as a residual of the gap on age with mortality as the outcome, by Barthels et al. on a Belgian cohort ([doi 10.1093/ehjdh/ztaf137](https://doi.org/10.1093/ehjdh/ztaf137), first published 28 November 2025), who reported r = -0.54 and the same reversal. What is repeated here is Barthels' method on CODE-15%. What is not in Barthels et al. or the 2021 paper is section 4 below.
 
-![Crude death rate for the older-looking and younger-looking groups, before and after correcting the age gap for chronological age](figure.svg)
+![Share of the older-looking and younger-looking groups who died, before and after correcting the age gap for chronological age](figure.svg)
 
 **Not a medical device. Not for clinical use.** This is a secondary analysis of a public research dataset. It says nothing about any individual's health or risk.
 
@@ -27,20 +27,21 @@ python ecg_age_bias.py
 That is the whole thing. It downloads the 35.5 MB dataset from Zenodo if it is
 not already present, verifies its md5 against the published checksum, refuses to
 continue if the bytes are wrong, and prints every number in this README. It
-takes about 10 seconds after the download and needs **no third-party packages at
+takes under 20 seconds after the download and needs **no third-party packages at
 all**: no numpy, no pandas, no GPU. Every file parses under the Python 3.9
-grammar and the whole suite was run end to end on **3.11.15 and 3.13.7**.
+grammar and the whole suite was run end to end on **3.9.6, 3.11.17, 3.13.16
+and 3.15.0**.
 
 ```
-python cox_model.py      # age- and sex-adjusted Cox models, about 40 seconds
+python cox_model.py      # age- and sex-adjusted Cox models, about a minute
 python verify.py         # assert every number below, then check the repository
 ```
 
-`verify.py` is the reason to trust this page. The headline figures quoted here
-(49 of them) are listed inside it against the code path that produces it, so a
+`verify.py` is the reason to trust this page. The figures quoted here (211 of
+them) are listed inside it against the code path that produces each one, so a
 README that drifts away from the code fails the check instead of quietly lying.
-The rest are printed by the same code. It also fails if the Cox implementation's
-own self-tests fail.
+The rest are printed by the same code. It also fails if the Cox or Kaplan-Meier
+implementation's own self-tests fail, and if the count just given goes stale.
 
 ---
 
@@ -48,7 +49,7 @@ own self-tests fail.
 
 | | |
 |---|---|
-| Patients analysed | 233,647 (one row per patient, the first exam) |
+| Patients analysed | 233,647 (one row per patient, the first exam). The 2021 paper's 218,169 is a different count, explained [below](#is-this-actually-the-cohort-the-paper-analysed) |
 | Deaths | 8,341 (3.57%) |
 | Median follow-up | 3.46 years |
 | Mean absolute error of the age model | 8.45 years |
@@ -67,9 +68,11 @@ the old.
 ## 2. What it does to the crude survival split
 
 Thresholds are the 2021 paper's own, plus or minus 8 years, chosen there because
-the model's mean absolute error is about 8 years.
+the model's mean absolute error is about 8 years. "Died" is the crude share of
+each group who died during follow-up. It ignores how long each group was
+followed; the follow-up table below deals with that.
 
-| Group | n | deaths | death rate | 95% CI | mean age |
+| Group | n | deaths | died | 95% CI | mean age |
 |---|---|---|---|---|---|
 | **Raw gap** | | | | | |
 | older-looking (> +8) | 56,400 | 1,702 | 3.02% | 2.88 to 3.16 | 42.2 |
@@ -80,53 +83,130 @@ the model's mean absolute error is about 8 years.
 | within 8 | 139,150 | 4,698 | 3.38% | 3.28 to 3.47 | 49.6 |
 | younger-looking (< -8) | 47,234 | 1,212 | 2.57% | 2.43 to 2.71 | 52.2 |
 
-Older versus younger death rate ratio: **0.66 raw, 2.00 corrected.**
+Older versus younger, crude risk ratio: **0.66 raw (0.62 to 0.70), 2.00
+corrected (1.87 to 2.15).**
 
-The mean age column is the whole argument. Before correction the two extreme
-groups differ by 20.7 years of chronological age, so the comparison is not about
-hearts at all. After correction they differ by 0.5 years.
+The mean age column is the whole argument for the raw split. Before correction
+the two extreme groups differ by 20.7 years of chronological age, so the
+comparison is not about hearts at all.
+
+**What is built in, and what is not.** After correction the two groups differ by
+0.5 years of age, and that is not evidence of anything. The correction fits the
+gap to be uncorrelated with age, by construction, so its two tails come out
+close to age balanced almost automatically. (Uncorrelated is not the same as
+independent, which is why both tails are still a few years older than the
+middle group, at 49.6.) What the correction does not force is the direction of
+the mortality difference between those balanced groups. That is what the gap
+carries beyond age. It is the part of the reversal that is a result, and the
+two checks below test it.
+
+### Follow-up and censoring
+
+The groups were not followed for the same length of time, so the share who died
+can mislead. Two measures that allow for it are deaths per 1,000 person-years,
+and Kaplan-Meier cumulative mortality with a 95% interval from Greenwood's
+variance (on the log(-log) scale). The horizons, 2 and 4 years, come from the
+follow-up distribution: 77.2% of patients are still under observation after 2
+years and 40.5% after 4 (the median follow-up is 3.46 years), but only 27.2%
+after 5, so a later horizon would rest on a shrinking minority.
+
+| Group | mean follow-up, years | deaths per 1,000 person-years | Kaplan-Meier mortality at 2 years | at 4 years |
+|---|---|---|---|---|
+| **Raw gap** | | | | |
+| older-looking (> +8) | 3.62 | 8.34 | 1.86% (1.75 to 1.98) | 3.26% (3.10 to 3.44) |
+| younger-looking (< -8) | 3.73 | 12.28 | 2.73% (2.58 to 2.90) | 4.79% (4.56 to 5.02) |
+| **Bias-corrected gap** | | | | |
+| older-looking (> +8) | 3.65 | 14.07 | 3.13% (2.97 to 3.29) | 5.52% (5.29 to 5.76) |
+| younger-looking (< -8) | 3.76 | 6.83 | 1.56% (1.44 to 1.68) | 2.71% (2.54 to 2.88) |
+| **Bias-corrected gap, share-matched** | | | | |
+| older-looking (> +6.620) | 3.65 | 13.92 | 3.09% (2.95 to 3.24) | 5.50% (5.28 to 5.72) |
+| younger-looking (< -8.582) | 3.76 | 6.91 | 1.56% (1.44 to 1.68) | 2.73% (2.56 to 2.92) |
+
+### Matching the group sizes
+
+The same plus or minus 8 year cut does not take the same share of the cohort
+from both gaps. On the raw gap it puts 24.14% of patients in the older-looking
+group and 18.46% in the younger-looking one; on the corrected gap, 20.23% and
+20.22%, because the corrected gap is centred on zero and has a narrower spread.
+So the corrected comparison above is between groups of different sizes from the
+raw one: a smaller older-looking group and a larger younger-looking one. To take
+that difference out, the corrected gap is also cut at the raw cut's shares:
+older-looking above +6.620 years and younger-looking below -8.582, which selects
+exactly 56,400 and 43,121 patients, the raw groups' sizes. Those are the last
+two rows of the table above (mean ages 53.1 and 52.7).
+
+| Older-looking against younger-looking | crude risk ratio | person-year rate ratio | Cox HR, adjusted for age and sex |
+|---|---|---|---|
+| raw gap, > +8 against < -8 | 0.66 (0.62 to 0.70) | 0.68 (0.64 to 0.73) | 2.244 (2.095 to 2.404) |
+| corrected gap, > +8 against < -8 | 2.00 (1.87 to 2.15) | 2.06 (1.92 to 2.21) | 2.056 (1.919 to 2.203) |
+| corrected gap, share-matched | 1.96 (1.83 to 2.10) | 2.02 (1.88 to 2.16) | 1.961 (1.830 to 2.101) |
+
+The crude reversal survives both checks. Allowing for follow-up moves each ratio
+by a few hundredths, and matching the shares moves the corrected one from 2.00
+to 1.96. The last column is the adjusted model of section 3, read as
+older-looking against younger-looking directly rather than each against the
+middle group. Adjusted for age, even the raw gap ranks the two groups the same
+way round: the reversal is a property of the unadjusted comparison, and what the
+correction buys is a crude comparison that agrees with the adjusted one.
 
 ## 3. The same thing with the published model, adjusted for age and sex
 
-The rates above are crude, so they cannot be compared with the 2021 paper's
-headline, which came from a Cox model adjusted for age and sex. `cox_model.py`
-fits that model, in the standard library, so the comparison is like for like.
+Apart from the last column of the table just above, the comparisons in section 2
+are unadjusted, so they cannot be compared with the 2021 paper's headline, which
+came from a Cox model adjusted for age and sex. `cox_model.py` fits that model,
+in the standard library, so the comparison is like for like.
 
 | Model | older-looking | younger-looking |
 |---|---|---|
 | 2021 paper, as published | HR 1.79 (1.69 to 1.90) | HR 0.78 (0.74 to 0.83) |
 | **this repository, raw gap** | **HR 1.774 (1.674 to 1.880)** | **HR 0.791 (0.750 to 0.834)** |
 | this repository, corrected gap | HR 1.586 (1.510 to 1.666) | HR 0.771 (0.724 to 0.822) |
+| this repository, corrected gap cut at matched shares (> +6.620, < -8.582) | HR 1.538 (1.467 to 1.612) | HR 0.784 (0.734 to 0.837) |
 
-The published estimates fall inside the intervals reproduced here and vice
-versa, which is the point: **the published headline replicates, and the bias
-correction then attenuates it rather than destroying it.**
+Each hazard ratio is against the within-8 group. The published estimates fall
+inside the intervals reproduced here and vice versa, which is the point: **the
+published headline replicates, and the bias correction then attenuates it
+rather than destroying it.**
 
 Attenuation is quoted here on three scales, because "attenuated by X%" means
 three different numbers and papers rarely say which one they mean. Raw against
 corrected: the hazard ratio falls from 1.774 to 1.586, which is **10.6% on the
 hazard ratio itself, 19.6% on the log hazard ratio, and 24.3% on the excess
-hazard** (an excess of 77.4% becomes 58.6%).
+hazard** (an excess of 77.4% becomes 58.6%). Those three figures compare groups
+of different sizes (section 2). With the corrected gap cut at matched shares the
+older-looking hazard ratio is 1.538, lower still, as a cut that sits closer to
+zero and so takes in less extreme gaps would lead you to expect.
 
-**And one result worth more than any of the above.** Fit the gap as a continuous
-covariate instead of thresholding it:
+**A check on the code, not a result.** Fit the gap as a continuous covariate
+instead of thresholding it:
 
 | Model | hazard ratio per year of gap |
 |---|---|
 | raw gap, adjusted for age and sex | 1.029307 |
 | corrected gap, adjusted for age and sex | 1.029307 |
 
-Identical to six decimal places, and they have to be. The corrected gap is the
-raw gap minus a linear function of age, so in a model that already adjusts for
-age linearly, the two are the same fit with the age coefficient moved. Barthels
-et al. found the same: HR 1.020 per year for both in their age-adjusted model,
-and about 1.4% for both after adding risk factors.
+These are identical, and they have to be, because it is an algebraic identity
+and not a finding. The corrected gap is the raw gap minus a linear function of
+age, `gap_bc = gap - (a + b x age)`, so in any model that already contains age
+linearly
 
-So the confound matters enormously for how this biomarker is **reported and
-thresholded**, and not at all for whether a continuous age-adjusted model
-detects it. Thresholded groups are a common way to report this biomarker (the
-2026 meta-analysis notes that studies "adopted different definitions"), and this
-distinction matters most there.
+`beta x gap_bc + gamma x age = beta x gap + (gamma - beta x b) x age - beta x a`
+
+The constant drops out of a Cox model, so the two fits are one model with the
+age coefficient moved, and the gap coefficient cannot change. It is kept on this
+page only because it tests the implementation: `cox_model.py` checks that the
+two fits have the same log-likelihood and that the age coefficient moves by
+exactly `-beta x b`, and `verify.py` fails if either does not hold. Barthels et
+al. report the same equality, HR 1.020 per year for both in their age-adjusted
+model and about 1.4% for both after adding risk factors, as the algebra requires.
+
+What does carry information is that the hazard ratio is above 1: the gap
+predicts death after adjusting for age and sex. The correction cannot change
+that in a model of this form. It changes things only where the gap is used on
+its own or cut into groups, because a threshold is not linear in age.
+Thresholded groups are a common way to report this biomarker (the 2026
+meta-analysis notes that studies "adopted different definitions"), so that is
+where the confound matters most.
 
 ## 4. The part that is not in either paper
 
@@ -148,10 +228,19 @@ The slopes are nearly identical (-0.2100 in men, -0.2159 in women), so this is a
 **intercept** difference, not a slope difference. The obvious fix is to correct
 within sex, and this is what happens when you do:
 
-| corrected within sex | older-looking | younger-looking | rate ratio |
+| corrected within sex | older-looking died | younger-looking died | crude risk ratio (95% CI) |
 |---|---|---|---|
-| male | 6.57% | 3.48% | **1.89** |
-| female | 4.03% | 2.05% | **1.96** |
+| male | 6.57% | 3.48% | **1.89** (1.72 to 2.07) |
+| female | 4.03% | 2.05% | **1.96** (1.77 to 2.16) |
+| female against male | | | **1.04** (0.91 to 1.19) |
+
+These are crude risk ratios: the share of the older-looking group who died
+during follow-up over the same share in the younger-looking group. The last row
+is the ratio of the two, with an interval from adding the variances of the two
+log risk ratios, which is valid because men and women are separate groups. It
+sits close to 1 with an interval that spans it, so there is no evidence that the
+sexes differ. The interval is also wide enough that a modest difference in
+either direction is not ruled out.
 
 **That is a null and it is reported here as one.** The mortality gradient is
 about the same in both sexes, so correcting within sex fixes the calibration of
@@ -165,16 +254,26 @@ The 2021 abstract makes a specific claim that the gap predicts mortality even
 among ECGs read as normal. That subgroup is in the data (n = 92,138, 1,358
 deaths) and the confound is **worse** there, not better: r = -0.4160.
 
-| | older-looking | younger-looking | rate ratio |
-|---|---|---|---|
-| raw gap | 1.15% | 1.94% | 0.59 |
-| corrected within this subgroup | 2.27% | 1.11% | 2.04 |
+| | older-looking died | younger-looking died | crude risk ratio (95% CI) | person-year rate ratio |
+|---|---|---|---|---|
+| raw gap | 1.15% | 1.94% | 0.59 (0.50 to 0.70) | 0.60 |
+| corrected within this subgroup | 2.27% | 1.11% | 2.04 (1.71 to 2.43) | 2.03 |
 
-The reversal holds in the subgroup the original abstract highlights.
+The reversal holds in the subgroup the original abstract highlights, and
+allowing for follow-up does not change it.
 
 ---
 
 ## Is this actually the cohort the paper analysed?
+
+**233,647 is this repository's cohort and 218,169 is the paper's.** Every
+analysis here uses the same 233,647 patients, or a named subgroup of them: the
+345,779 exam rows in `exams.csv` minus the 112,132 rows that carry no outcome,
+which leaves one row per patient (123 of the file's 233,770 patients have no row
+with an outcome and drop out, and no row fails to parse). The paper reports
+218,169 patients and 8,118 deaths for CODE-15%, against 233,647 and 8,341 in the
+public file, and neither the paper nor the file says which step removed the
+other 15,478 patients.
 
 Worth checking rather than assuming, because the answer is yes with a caveat
 that matters.
@@ -192,10 +291,15 @@ Four summary statistics match at the paper's rounding, and the mean absolute
 error is close (8.45 against 8.38). **The sample size does not match**, and this README
 will not paper over it: the published analysis used 218,169 participants and
 this one uses all 233,647 patients in the public deposit who carry an outcome.
-The paper does not state the exclusions that take it from one number to the
-other. That is the most likely reason the reproduced hazard ratio is 1.774 and
-not 1.790, and it is a limitation of this replication rather than a finding
-about the original.
+The paper's methods describe an age-stratified sample from 16 to 85 years in
+which only each patient's first exam is used, and the public file already looks
+like that: one outcome row per patient, nobody younger than 17, and 13 patients
+older than 85. So neither step accounts for the difference. Simple filters tried
+while preparing this page (an age cap at 85, adults only, follow-up above zero,
+no listed ECG abnormality, keeping each patient's lowest exam id) do not
+reproduce both counts either. The difference is unexplained. It is a plausible
+reason the reproduced hazard ratio is 1.774 and not 1.790, and it is a
+limitation of this replication rather than a finding about the original.
 
 One trap for anyone re-deriving these numbers. `exams.csv` holds 345,779 exam
 rows but only 233,647 patients with an outcome, because mortality and follow-up
@@ -285,19 +389,26 @@ sex and its headline replicates here (section 3). The crude reversal in section
 2 is a statement about the raw gap as a standalone quantity, which is how it is
 frequently used downstream, and not about the published model.
 
-**It does not show the biomarker is useless.** Section 3 shows the opposite: a
-continuous age-adjusted model finds the same signal either way.
+**It does not show the biomarker is useless.** In a continuous model adjusted
+for age and sex the gap still predicts death, HR 1.0293 per year (section 3).
+That the corrected gap returns the same number is algebra, not a second piece of
+evidence.
 
 **It does show** that the raw gap is heavily age-confounded, that this reverses
-the direction of any crude or thresholded analysis, that the age adjustment in
-the published model is therefore carrying a great deal of weight, and that the
-standard pooled correction leaves a 0.63 year sex offset behind.
+the direction of a crude, unadjusted comparison of thresholded groups, that the
+age adjustment in the published model is therefore carrying a great deal of
+weight, and that the standard pooled correction leaves a 0.63 year sex offset
+behind. Part of the reversal is built in, because the corrected groups are age
+balanced by construction. The direction of the corrected mortality difference is
+not built in, and it holds per person-year, by Kaplan-Meier and at matched group
+sizes (section 2).
 
 **Design limits.** This is a secondary analysis of a single observational
 cohort. No new model was trained: the age predictions are the original authors'
 own, already a column in the published file, so nothing here says anything about
-any other ECG age model. Crude rates ignore censoring; the Cox models in section
-3 do not, and should be preferred. Deaths are from record linkage and cause of
+any other ECG age model. The crude percentages ignore censoring. The person-year
+rates and Kaplan-Meier estimates in section 2 and the Cox models in section 3 do
+not, and should be preferred. Deaths are from record linkage and cause of
 death is not available. There is no external validation set in this repository.
 
 ## Using the correction on another cohort
@@ -344,7 +455,7 @@ and anything over 1 MB ships in `.githooks/`; switch it on once per clone with
 
 | | |
 |---|---|
-| `ecg_age_bias.py` | the replication. Standard library only. Downloads, checksums, analyses, writes `results/results.json` |
+| `ecg_age_bias.py` | the replication. Standard library only. Downloads, checksums, analyses (crude shares, person-year rates, Kaplan-Meier), writes `results/results.json` |
 | `cox_model.py` | Cox proportional hazards with Efron ties, also standard library. `--selftest` runs the correctness checks alone |
 | `verify.py` | asserts every number in this README, then scans the repository for secrets, absolute paths, data files and em dashes |
 | `make_figure.py` | draws `figure.svg` at the top of this page from `results/results.json`. Standard library only, reads numbers and computes nothing new |
@@ -359,8 +470,11 @@ four ways, and all four are reproducible from this repository.
 1. **Against a naive implementation.** The fast cumulative-sum risk-set
    accumulation is compared with a transparent O(n squared) loop over the whole
    risk set at every event time. Worst relative disagreement across
-   log-likelihood, gradient and information matrix: **3.3e-16**, which is
-   machine precision. `python cox_model.py --selftest`
+   log-likelihood, gradient and information matrix: **2.41e-15** on Python
+   3.15, which is machine precision (exactly 0 on 3.11; the docstring of
+   `selftest_fast_vs_naive` in `cox_model.py` explains why newer Pythons
+   differ).
+   `python cox_model.py --selftest`
 2. **Against the optimality conditions.** At the solution, max absolute score is
    **4.1e-09** and the information matrix is positive definite.
 3. **Against lifelines.** Standard errors agree to **6.0e-09**. Standard errors
@@ -370,9 +484,13 @@ four ways, and all four are reproducible from this repository.
 4. **Against a published number this code did not produce.** HR 1.774 against
    the paper's 1.79, on nearly the same cohort.
 
-`python verify.py` runs 49 numeric assertions plus the hygiene scan and exits
-non-zero if any of them moves. It was run to completion on Python 3.11.15 and
-3.13.7, and on a fresh clone that downloaded the data itself.
+`python verify.py` runs 211 numeric assertions and 6 self-tests plus the hygiene
+scan and exits non-zero if any of them moves. The self-tests include the
+Kaplan-Meier estimates against a slow transcription of the definition, and the
+older-against-younger contrasts against a refit with a different reference
+group. This version was run to completion on Python 3.9.6, 3.11.17, 3.13.16 and
+3.15.0 against the md5-verified local copy of the data; an earlier version was
+also run on a fresh clone that downloaded the data itself.
 
 On point 3, one detail is worth recording because the obvious version of that
 check failed first. Comparing *coefficients* at 1e-6 fails, and the reason is
