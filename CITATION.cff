@@ -9,9 +9,12 @@ abstract: >-
   correcting the confound reverses the direction of the crude survival result.
   A linear age-bias correction was applied by Hirota et al. (Japanese cohort,
   2023), and Barthels et al. (Belgian cohort, 2025) used it with mortality as
-  the outcome; this repository repeats Barthels' method on CODE-15%. It adds an age- and sex-adjusted Cox comparison, a sex-fairness result
-  for the pooled correction, and a null result for correcting within sex. Runs
-  on the Python standard library with no third-party dependencies.
+  the outcome; this repository repeats the first, linear step of Barthels'
+  correction on CODE-15%. It adds an age- and sex-adjusted Cox comparison, a
+  sex-fairness result for the pooled correction, and a null result for
+  correcting within sex. Runs on the Python standard library with no
+  third-party dependencies. The germany folder tests whether the line fitted
+  in Brazil transfers, unchanged, to the German PTB-XL cohort.
 type: software
 authors:
   - given-names: Adithya

@@ -1,0 +1,540 @@
+Using CPython 3.12.15
+Creating virtual environment at: .venv
+Activate with: source .venv/bin/activate
+Resolved 49 packages in 342ms
+Downloading fonttools (3.0MiB)
+ Downloaded fonttools
+Prepared 3 packages in 616ms
+Installed 49 packages in 345ms
+ + aiohappyeyeballs==2.7.1
+ + aiohttp==3.14.5
+ + aiosignal==1.4.0
+ + attrs==26.1.0
+ + autograd==1.9.1
+ + autograd-gamma==0.5.0
+ + certifi==2026.10.23
+ + cffi==2.1.1
+ + charset-normalizer==3.5.2
+ + contourpy==1.4.0
+ + cycler==0.12.1
+ + filelock==4.2.4
+ + fonttools==4.68.0
+ + formulaic==1.2.2
+ + frozenlist==1.8.0
+ + fsspec==2026.9.0
+ + h5py==3.16.0
+ + idna==3.20
+ + interface-meta==2.0.1
+ + jinja2==3.1.6
+ + kiwisolver==1.5.1
+ + lifelines==0.30.0
+ + markupsafe==3.0.4
+ + matplotlib==3.11.2
+ + mpmath==1.3.0
+ + multidict==7.2.1
+ + narwhals==2.28.0
+ + networkx==3.7
+ + numpy==2.5.4
+ + packaging==26.3
+ + pandas==3.1.0
+ + pillow==13.0.0
+ + propcache==0.5.4
+ + pycparser==3.12
+ + pyparsing==3.3.3
+ + python-dateutil==3.0.0
+ + requests==2.34.2
+ + scipy==1.18.1
+ + setuptools==84.2.1
+ + six==1.17.0
+ + soundfile==0.14.0
+ + sympy==1.14.0
+ + torch==2.14.1
+ + typing-extensions==4.16.0
+ + tzdata==2026.6
+ + urllib3==2.8.0
+ + wfdb==4.3.1
+ + wrapt==2.5.2
+ + yarl==1.25.1
+Cloning into 'data/third_party/ecg-age-prediction'...
+==========================================================================
+AGE-REGRESSION BIAS IN THE AI ECG AGE GAP
+A replication on CODE-15% of Barthels et al., Eur Heart J Digit Health
+2026, doi 10.1093/ehjdh/ztaf137. A linear bias correction was applied
+earlier by Hirota et al., doi 10.1016/j.ijcha.2023.101172.
+==========================================================================
+
+[1] COHORT  (exams.csv cached, md5 verified)
+    rows in file            345779  (233770 distinct patients)
+    rows without an outcome 112132
+      (follow-up is recorded only on a patient's first exam; 123 patients
+      have no row with an outcome at all and so leave the cohort)
+    rows that failed to parse 0
+    patients analysed       233647  (every analysis below uses these, or a
+                                    named subgroup of them)
+    2021 paper's CODE-15%   218169 patients, 8118 deaths: 15478 fewer patients
+                            and 223 fewer deaths than the public file
+    deaths                  8341  (3.57%)
+    male                    40.5%
+    chronological age       mean 50.74  sd 19.82
+    ECG-predicted age       mean 51.90  sd 18.61
+    mean absolute error     8.45 years
+    median follow-up        3.46 years
+    still followed after    1y 95.0%  2y 77.2%  3y 58.9%  4y 40.5%  5y 27.2%  6y 16.5%
+    r(predicted, chrono)    +0.8381
+
+[2] THE CONFOUND
+    PAD = ECG-predicted age minus chronological age
+    r(PAD, chronological age)     -0.3842   <- this is the problem
+    fitted  PAD = -0.2131 * age +11.9755
+    r(PAD_bc, chronological age)  -0.0000   <- zero by construction
+
+[3] WHAT THAT DOES TO THE CRUDE SURVIVAL SPLIT  (threshold +/- 8 years)
+    RAW PAD, as the 2021 paper thresholded it:
+      older    n=  56400 (24.1%)  deaths= 1702  died= 3.02% [2.88, 3.16]  mean age=42.2
+                8.34 per 1000 PY [ 7.96,  8.75]  mean follow-up 3.62 y  KM 2y 1.86% [1.75, 1.98]  KM 4y 3.26% [3.10, 3.44]
+      within   n= 134126 (57.4%)  deaths= 4667  died= 3.48% [3.38, 3.58]  mean age=50.4
+                9.44 per 1000 PY [ 9.17,  9.71]  mean follow-up 3.69 y  KM 2y 2.06% [1.99, 2.14]  KM 4y 3.80% [3.69, 3.92]
+      younger  n=  43121 (18.5%)  deaths= 1972  died= 4.57% [4.38, 4.77]  mean age=62.9
+               12.28 per 1000 PY [11.75, 12.83]  mean follow-up 3.73 y  KM 2y 2.73% [2.58, 2.90]  KM 4y 4.79% [4.56, 5.02]
+      older / younger, crude risk ratio 0.66 [0.62, 0.70]   person-year rate ratio 0.68 [0.64, 0.73]
+
+    BIAS-CORRECTED PAD:
+      older    n=  47263 (20.2%)  deaths= 2431  died= 5.14% [4.95, 5.35]  mean age=52.7
+               14.07 per 1000 PY [13.53, 14.64]  mean follow-up 3.65 y  KM 2y 3.13% [2.97, 3.29]  KM 4y 5.52% [5.29, 5.76]
+      within   n= 139150 (59.6%)  deaths= 4698  died= 3.38% [3.28, 3.47]  mean age=49.6
+                9.23 per 1000 PY [ 8.97,  9.50]  mean follow-up 3.66 y  KM 2y 2.00% [1.93, 2.08]  KM 4y 3.69% [3.57, 3.80]
+      younger  n=  47234 (20.2%)  deaths= 1212  died= 2.57% [2.43, 2.71]  mean age=52.2
+                6.83 per 1000 PY [ 6.46,  7.22]  mean follow-up 3.76 y  KM 2y 1.56% [1.44, 1.68]  KM 4y 2.71% [2.54, 2.88]
+      older / younger, crude risk ratio 2.00 [1.87, 2.15]   person-year rate ratio 2.06 [1.92, 2.21]
+
+    The sign flips. In the raw split the mean ages are 42.2 and 62.9,
+    so it is sorting patients by age. After correction they are 52.7 and 52.2.
+    That age balance is BY CONSTRUCTION: the corrected gap is fitted to be
+    uncorrelated with age, so its two tails come out close to age balanced
+    almost automatically. The direction of the mortality difference is NOT
+    forced by the correction. It is what the gap carries beyond age.
+
+[3b] SHARE-MATCHED: the corrected gap cut at the raw cut's shares
+    The +/- 8 cut takes 24.14% / 18.46% of the cohort from the raw gap
+    but 20.23% / 20.22% from the corrected one, which has a narrower spread.
+    Cutting the corrected gap at > +6.620 and < -8.582 years selects exactly
+    the raw groups' sizes, 56400 and 43121.
+    BIAS-CORRECTED PAD, share-matched:
+      older    n=  56400 (24.1%)  deaths= 2867  died= 5.08% [4.91, 5.27]  mean age=53.1
+               13.92 per 1000 PY [13.42, 14.44]  mean follow-up 3.65 y  KM 2y 3.09% [2.95, 3.24]  KM 4y 5.50% [5.28, 5.72]
+      within   n= 134126 (57.4%)  deaths= 4355  died= 3.25% [3.15, 3.34]  mean age=49.1
+                8.87 per 1000 PY [ 8.61,  9.13]  mean follow-up 3.66 y  KM 2y 1.93% [1.85, 2.00]  KM 4y 3.53% [3.42, 3.65]
+      younger  n=  43121 (18.5%)  deaths= 1119  died= 2.60% [2.45, 2.75]  mean age=52.7
+                6.91 per 1000 PY [ 6.52,  7.33]  mean follow-up 3.76 y  KM 2y 1.56% [1.44, 1.68]  KM 4y 2.73% [2.56, 2.92]
+      older / younger, crude risk ratio 1.96 [1.83, 2.10]   person-year rate ratio 2.02 [1.88, 2.16]
+
+[4] IS THE POOLED CORRECTION SEX FAIR?  (zero would mean yes)
+    mean PAD_bc, male    +0.372 years   (n=94736)
+    mean PAD_bc, female  -0.254 years   (n=138911)
+    residual sex gap     0.626 years
+    Male ECGs read older. A correction fitted on everyone leaves that in place.
+
+[5] CORRECT WITHIN EACH SEX INSTEAD
+    male   slope -0.2100  intercept +12.1915  mean PAD_bc -0.000000
+    female slope -0.2159  intercept +11.8635  mean PAD_bc -0.000000
+
+    male, corrected within sex:
+      older    n=  19333 (20.4%)  deaths= 1271  died= 6.57% [6.23, 6.93]  mean age=52.9
+               18.35 per 1000 PY [17.37, 19.38]  mean follow-up 3.58 y  KM 2y 4.02% [3.75, 4.32]  KM 4y 7.21% [6.80, 7.65]
+      within   n=  56241 (59.4%)  deaths= 2550  died= 4.53% [4.37, 4.71]  mean age=50.2
+               12.61 per 1000 PY [12.13, 13.11]  mean follow-up 3.60 y  KM 2y 2.77% [2.63, 2.91]  KM 4y 5.03% [4.82, 5.25]
+      younger  n=  19162 (20.2%)  deaths=  667  died= 3.48% [3.23, 3.75]  mean age=52.6
+                9.28 per 1000 PY [ 8.60, 10.01]  mean follow-up 3.75 y  KM 2y 2.09% [1.89, 2.31]  KM 4y 3.63% [3.34, 3.94]
+      older / younger, crude risk ratio 1.89 [1.72, 2.07]   person-year rate ratio 1.98 [1.80, 2.17]
+
+    female, corrected within sex:
+      older    n=  27873 (20.1%)  deaths= 1122  died= 4.03% [3.80, 4.26]  mean age=52.5
+               10.84 per 1000 PY [10.22, 11.49]  mean follow-up 3.72 y  KM 2y 2.40% [2.22, 2.60]  KM 4y 4.25% [3.99, 4.53]
+      within   n=  83051 (59.8%)  deaths= 2156  died= 2.60% [2.49, 2.71]  mean age=49.2
+                7.02 per 1000 PY [ 6.73,  7.33]  mean follow-up 3.70 y  KM 2y 1.49% [1.41, 1.58]  KM 4y 2.78% [2.65, 2.91]
+      younger  n=  27987 (20.1%)  deaths=  575  died= 2.05% [1.89, 2.23]  mean age=51.9
+                5.46 per 1000 PY [ 5.03,  5.93]  mean follow-up 3.76 y  KM 2y 1.26% [1.13, 1.40]  KM 4y 2.19% [2.00, 2.40]
+      older / younger, crude risk ratio 1.96 [1.77, 2.16]   person-year rate ratio 1.98 [1.79, 2.19]
+
+    older/younger crude risk ratio: male 1.89 [1.72, 2.07], female 1.96 [1.77, 2.16].
+    female / male ratio of the two: 1.04 [0.91, 1.19]; 1 means no difference.
+    The slopes are nearly identical, so the pooled unfairness in [4] is an
+    intercept difference and not a slope difference. Correcting within sex
+    leaves the mortality gradient about the same in both. That is a NULL
+    result and it is reported here as one.
+
+[6] APPARENTLY NORMAL ECGs ONLY  (n=92138, deaths=1358)
+    r(PAD, age) in this subgroup  -0.4160
+    raw PAD:
+      older    n=  21402 (23.2%)  deaths=  247  died= 1.15% [1.02, 1.31]  mean age=37.0
+                4.23 per 1000 PY [ 3.73,  4.79]  mean follow-up 2.73 y  KM 2y 0.84% [0.72, 0.98]  KM 4y 1.67% [1.45, 1.92]
+      within   n=  54588 (59.2%)  deaths=  797  died= 1.46% [1.36, 1.56]  mean age=43.9
+                5.30 per 1000 PY [ 4.95,  5.68]  mean follow-up 2.75 y  KM 2y 1.00% [0.91, 1.09]  KM 4y 2.15% [1.99, 2.33]
+      younger  n=  16148 (17.5%)  deaths=  314  died= 1.94% [1.74, 2.17]  mean age=58.6
+                7.05 per 1000 PY [ 6.32,  7.88]  mean follow-up 2.76 y  KM 2y 1.45% [1.27, 1.66]  KM 4y 2.73% [2.41, 3.10]
+      older / younger, crude risk ratio 0.59 [0.50, 0.70]   person-year rate ratio 0.60 [0.51, 0.71]
+
+    corrected within this subgroup:
+      older    n=  17198 (18.7%)  deaths=  390  died= 2.27% [2.06, 2.50]  mean age=48.3
+                8.21 per 1000 PY [ 7.43,  9.06]  mean follow-up 2.76 y  KM 2y 1.57% [1.39, 1.78]  KM 4y 3.27% [2.93, 3.65]
+      within   n=  58215 (63.2%)  deaths=  782  died= 1.34% [1.25, 1.44]  mean age=42.7
+                4.90 per 1000 PY [ 4.56,  5.25]  mean follow-up 2.74 y  KM 2y 0.96% [0.88, 1.05]  KM 4y 1.97% [1.82, 2.13]
+      younger  n=  16725 (18.2%)  deaths=  186  died= 1.11% [0.96, 1.28]  mean age=48.8
+                4.04 per 1000 PY [ 3.50,  4.67]  mean follow-up 2.75 y  KM 2y 0.76% [0.63, 0.91]  KM 4y 1.56% [1.32, 1.85]
+      older / younger, crude risk ratio 2.04 [1.71, 2.43]   person-year rate ratio 2.03 [1.71, 2.42]
+
+==========================================================================
+WHAT THIS DOES AND DOES NOT SHOW
+==========================================================================
+
+It does NOT show that the 2021 CODE-15% paper is wrong. That paper fitted a Cox
+model ADJUSTED FOR AGE AND SEX and reported HR 1.79 (95% CI 1.69 to 1.90) for the
+older-looking group. Every rate above is CRUDE and unadjusted, so it is not
+comparable to that headline. Run cox_model.py for the adjusted comparison.
+
+What it does show is that the raw gap is heavily age-confounded, that the crude
+direction reverses once the confound is removed, and therefore that the age
+adjustment in the published model is carrying a great deal of weight. Part of
+the reversal is built in: the corrected groups are age balanced by construction.
+The direction of the corrected mortality difference is not built in, and it
+survives person-years, Kaplan-Meier and cutting at matched shares.
+
+It is a REPLICATION. Hirota et al. (2023, Japanese cohort) applied a linear bias
+correction first, and Barthels et al. published the residual form on a Belgian
+cohort in November 2025 and reported r = -0.54 and the same reversal. What is new
+here is the cohort, the sex-fairness result in [4], and the null in [5].
+
+machine-readable results written to results/results.json
+cached 0
+cached 1
+cached 2
+cached 3
+cached 4
+cached 5
+cached 6
+cached 7
+cached 8
+cached 9
+cached 10
+cached 11
+cached 12
+cached 13
+cached 14
+cached 15
+cached 16
+cached 17
+cached ptb
+GATE A {'n': 233770, 'pearson_r': 0.9999999999865296, 'mean_abs_diff': 8.707395017144409e-05, 'max_abs_diff': 0.0006289450683567566, 'pass': True}
+split 163639 23377 46754
+ridge grid (val MAE, lambda/scale): [{"plain": [[8.044018568576291, 1e-05], [8.043258652751168, 0.0001], [8.046429870254205, 0.001], [8.045139546281336, 0.01], [8.052065904029304, 0.1], [8.086035366746936, 1.0], [8.18195397235002, 10.0]]}, {"constrained": [[9.490279921652062, 1e-05], [9.494448182764687, 0.0001], [9.50526414846186, 0.001], [9.501322579722057, 0.01], [9.503236973485427, 0.1], [9.546641877244836, 1.0], [9.635033448018596, 10.0]]}]
+train cov(gap,age): plain -106.3535981512738 constrained 7.738130409780584e-12
+GATE B {'n': 21373, 'MAE': 9.208962135955693, 'pearson_r_pred_age': 0.7666386242778185, 'mean_gap': 3.0073375522529817, 'CODE_test_net_MAE': 8.455284731297425, 'CODE_test_net_r': 0.8388843385854342, 'pass': True}
+COX {'(b) constrained': {'HR_per_year': 1.021784577444565, 'ci': [1.0171120175045074, 1.026478602883032], 'n': 43570, 'deaths': 1502}, '(c) plain + post-hoc': {'HR_per_year': 1.0302218044958593, 'ci': [1.023719168150463, 1.036765745410669], 'n': 43570, 'deaths': 1502}}
+### CODE-15% test patients (n=46754 ECGs, 46754 patients, mean age 50.9)
+
+| Method | MAE (years) | r (gap vs age) [95% CI] | slope | gap 18-39 | gap 40-49 | gap 50-59 | gap 60-69 | gap 70-79 | gap 80-89 |
+|---|---|---|---|---|---|---|---|---|---|
+| (d) network raw | 8.46 | -0.384 [-0.391, -0.378] | -0.213 | +5.5 | +2.1 | +0.9 | -0.6 | -3.5 | -7.1 |
+| (a) plain ridge | 8.06 | -0.518 [-0.523, -0.513] | -0.272 | +5.5 | +1.9 | +0.1 | -2.2 | -6.4 | -11.0 |
+| (b) constrained | 9.52 | -0.008 [-0.016, -0.000] | -0.005 | -0.7 | +0.2 | +1.4 | +2.0 | -0.1 | -3.4 |
+| (c) plain + post-hoc | 6.96 | -0.008 [-0.016, +0.000] | -0.004 | -0.5 | +0.1 | +1.0 | +1.5 | -0.1 | -2.5 |
+| (d+) network + post-hoc | 7.88 | +0.002 [-0.007, +0.010] | +0.001 | -0.4 | -0.4 | +0.5 | +1.2 | +0.4 | -1.5 |
+
+- r[(b) constrained] - r[(c) plain + post-hoc]: -0.000 [-0.001, -0.000]
+- |r|[(b) constrained] - |r|[(c) plain + post-hoc]: +0.000 [-0.000, +0.001]
+- r[(b) constrained] - r[(a) plain ridge]: +0.510 [+0.505, +0.515]
+- |r|[(b) constrained] - |r|[(a) plain ridge]: -0.510 [-0.515, -0.505]
+- r[(c) plain + post-hoc] - r[(a) plain ridge]: +0.511 [+0.506, +0.516]
+- |r|[(c) plain + post-hoc] - |r|[(a) plain ridge]: -0.511 [-0.516, -0.506]
+- r[(b) constrained] - r[(d) network raw]: +0.376 [+0.372, +0.381]
+- |r|[(b) constrained] - |r|[(d) network raw]: -0.376 [-0.381, -0.371]
+- r[(c) plain + post-hoc] - r[(d+) network + post-hoc]: -0.009 [-0.013, -0.006]
+- |r|[(c) plain + post-hoc] - |r|[(d+) network + post-hoc]: +0.004 [-0.009, +0.011]
+
+### PTB-XL, corrections fitted in Brazil (n=21373 ECGs, 18495 patients, mean age 59.8)
+
+| Method | MAE (years) | r (gap vs age) [95% CI] | slope | gap 18-39 | gap 40-49 | gap 50-59 | gap 60-69 | gap 70-79 | gap 80-89 |
+|---|---|---|---|---|---|---|---|---|---|
+| (d) network raw | 9.21 | -0.319 [-0.331, -0.307] | -0.220 | +8.3 | +5.4 | +4.9 | +3.5 | +0.2 | -5.2 |
+| (a) plain ridge | 8.37 | -0.451 [-0.461, -0.440] | -0.294 | +6.7 | +3.6 | +2.4 | +0.2 | -4.3 | -10.7 |
+| (b) constrained | 10.64 | -0.040 [-0.055, -0.025] | -0.032 | +1.2 | +2.6 | +4.8 | +5.2 | +2.7 | -2.6 |
+| (c) plain + post-hoc | 7.77 | -0.042 [-0.057, -0.027] | -0.025 | +0.9 | +1.9 | +3.5 | +3.8 | +1.9 | -1.9 |
+| (d+) network + post-hoc | 9.03 | -0.010 [-0.025, +0.005] | -0.006 | +2.6 | +3.0 | +4.6 | +5.3 | +4.0 | +0.7 |
+
+- r[(b) constrained] - r[(c) plain + post-hoc]: +0.002 [+0.002, +0.002]
+- |r|[(b) constrained] - |r|[(c) plain + post-hoc]: -0.002 [-0.002, -0.002]
+- r[(b) constrained] - r[(a) plain ridge]: +0.410 [+0.403, +0.418]
+- |r|[(b) constrained] - |r|[(a) plain ridge]: -0.410 [-0.418, -0.403]
+- r[(c) plain + post-hoc] - r[(a) plain ridge]: +0.408 [+0.401, +0.416]
+- |r|[(c) plain + post-hoc] - |r|[(a) plain ridge]: -0.408 [-0.416, -0.401]
+- r[(b) constrained] - r[(d) network raw]: +0.279 [+0.272, +0.285]
+- |r|[(b) constrained] - |r|[(d) network raw]: -0.279 [-0.285, -0.272]
+- r[(c) plain + post-hoc] - r[(d+) network + post-hoc]: -0.032 [-0.036, -0.029]
+- |r|[(c) plain + post-hoc] - |r|[(d+) network + post-hoc]: +0.032 [+0.023, +0.036]
+
+### PTB-XL second half, post-hoc line refitted on first half (n=10706 ECGs, 9248 patients, mean age 60.0)
+
+| Method | MAE (years) | r (gap vs age) [95% CI] | slope | gap 18-39 | gap 40-49 | gap 50-59 | gap 60-69 | gap 70-79 | gap 80-89 |
+|---|---|---|---|---|---|---|---|---|---|
+| (d) network raw | 9.14 | -0.318 [-0.335, -0.302] | -0.220 | +8.4 | +5.4 | +4.7 | +3.8 | +0.1 | -5.0 |
+| (a) plain ridge | 8.29 | -0.451 [-0.465, -0.437] | -0.294 | +6.8 | +3.6 | +2.2 | +0.4 | -4.4 | -10.6 |
+| (b) constrained | 10.57 | -0.041 [-0.061, -0.020] | -0.033 | +1.3 | +2.6 | +4.5 | +5.5 | +2.6 | -2.4 |
+| (c) plain + post-hoc | 7.52 | -0.001 [-0.022, +0.020] | -0.001 | -1.9 | -0.5 | +1.1 | +2.0 | +0.1 | -3.4 |
+| (d+) network + post-hoc | 8.48 | +0.001 [-0.019, +0.021] | +0.001 | -1.2 | -0.9 | +0.6 | +1.8 | +0.2 | -2.7 |
+
+- r[(b) constrained] - r[(c) plain + post-hoc]: -0.040 [-0.041, -0.039]
+- |r|[(b) constrained] - |r|[(c) plain + post-hoc]: +0.032 [+0.001, +0.040]
+- r[(b) constrained] - r[(a) plain ridge]: +0.410 [+0.399, +0.421]
+- |r|[(b) constrained] - |r|[(a) plain ridge]: -0.410 [-0.421, -0.399]
+- r[(c) plain + post-hoc] - r[(a) plain ridge]: +0.450 [+0.439, +0.462]
+- |r|[(c) plain + post-hoc] - |r|[(a) plain ridge]: -0.442 [-0.454, -0.419]
+- r[(b) constrained] - r[(d) network raw]: +0.278 [+0.269, +0.286]
+- |r|[(b) constrained] - |r|[(d) network raw]: -0.278 [-0.286, -0.269]
+- r[(c) plain + post-hoc] - r[(d+) network + post-hoc]: -0.002 [-0.007, +0.003]
+- |r|[(c) plain + post-hoc] - |r|[(d+) network + post-hoc]: +0.000 [-0.006, +0.006]
+
+
+[   2.0s] inputs verified: 42747 PTB-XL files, md5 of weights and exams.csv
+[   2.0s] Brazil line gap = 11.9755 + (-0.2131) x age, re-derived from exams.csv
+[   2.1s] gate A, cached: {'n': 233770, 'pearson_r': 0.9999999999865296, 'mean_abs_diff': 8.707395017144409e-05, 'max_abs_diff': 0.0006289450683567566}
+[ 113.2s] network on 21373 PTB-XL ECGs at scale x1.000: 111s on mps
+[ 113.2s] PTB-XL re-run against 25 Oct cache: {'n': 21373, 'pearson_r': 0.9999999999999998, 'mean_abs_diff': 0.0, 'max_abs_diff': 0.0}
+[ 113.2s] gate B: {'n_ecgs': 21373, 'n_patients': 18495, 'mean_gap': 3.0073375522529817, 'mae': 9.208962135955693, 'pearson_r_pred_age': 0.7666386242778185}
+[ 115.1s] primary analysis done
+[ 121.3s] half split done
+[ 123.4s] sensitivity (all ECGs) done
+[ 125.5s] exploratory NORM subgroups done
+[ 131.1s] audit checks done (split half, age window, sex-specific lines)
+[ 134.5s] gate A, re-run from raw HDF5: {'n': 1000, 'pearson_r': 0.9999999999866747, 'mean_abs_diff': 8.736317041005037e-05, 'max_abs_diff': 0.0004503100585964148}
+[ 134.5s] amplitude ratio CODE-15% / PTB-XL: median over leads x1.967
+[ 220.8s] network on 18495 PTB-XL ECGs at scale x1.967: 86s on mps
+[ 222.9s] scale-matched sensitivity done
+
+== Brazil line: gap = 11.9755 + -0.2131 x age (n=233647)
+  in its own cohort, mean corrected gap by band: lt40 -0.25   40-49 -0.63   50-59 +0.58   60-69 +1.14   70-79 +0.36   ge80 -1.55
+  male +0.372  female -0.254   >+8 20.23%  <-8 20.22%   normal_ecg flag -1.33 (n=92138), not flagged +0.86
+
+== PRIMARY, first ECG per patient, Brazil line: 18495 ECGs, 18495 patients, mean age 59.4, 51.5% male
+  MAE raw 9.11   mean gap raw +2.78 (+2.62 to +2.95)   corrected +3.46 (+3.31 to +3.61)
+  r(gap, age) raw -0.317 (-0.328 to -0.306)   corrected -0.002 (-0.015 to +0.011)
+  slope raw -0.214 (-0.223 to -0.206)   corrected -0.001 (-0.010 to +0.007)
+  band  lt40: corrected +2.29 (+1.94 to +2.66)   raw +8.03  n=2491
+  band 40-49: corrected +2.52 (+2.04 to +2.97)   raw +4.95  n=2204
+  band 50-59: corrected +4.18 (+3.83 to +4.55)   raw +4.46  n=3811
+  band 60-69: corrected +5.05 (+4.73 to +5.36)   raw +3.27  n=4462
+  band 70-79: corrected +3.84 (+3.53 to +4.18)   raw +0.01  n=3504
+  band  ge80: corrected +0.40 (-0.01 to +0.85)   raw -5.45  n=2023
+  band range (max - min) +4.65 (+4.06 to +5.18)
+  male +4.69 (+4.48 to +4.91)   female +2.15 (+1.92 to +2.36)   male-female +2.55 (+2.24 to +2.84)   band-adjusted +2.24 (+1.93 to +2.53)
+  corrected gap > +8: 33.37%   < -8: 13.72%
+  raw gap: band range +13.48 (+12.90 to +14.07)   male-female +2.86 (+2.53 to +3.16)   > +8 31.69%   < -8 16.03%
+
+== German line, all primary patients: gap = 15.498 (14.996 to 16.005) + -0.2142 (-0.2221 to -0.2061) x age
+
+== SECONDARY, two-step (Brazil line + Brazil age-level means), first ECG per patient: 18495 ECGs, 18495 patients, mean age 59.4, 51.5% male
+  MAE raw 9.11   mean gap raw +2.78 (+2.62 to +2.94)   corrected +3.30 (+3.15 to +3.45)
+  r(gap, age) raw -0.317 (-0.328 to -0.306)   corrected +0.006 (-0.007 to +0.018)
+  slope raw -0.214 (-0.222 to -0.206)   corrected +0.004 (-0.005 to +0.012)
+  band  lt40: corrected +2.69 (+2.32 to +3.03)   raw +8.03  n=2491
+  band 40-49: corrected +3.11 (+2.64 to +3.57)   raw +4.95  n=2204
+  band 50-59: corrected +3.57 (+3.21 to +3.93)   raw +4.46  n=3811
+  band 60-69: corrected +3.91 (+3.58 to +4.23)   raw +3.27  n=4462
+  band 70-79: corrected +3.42 (+3.10 to +3.74)   raw +0.01  n=3504
+  band  ge80: corrected +2.22 (+1.80 to +2.66)   raw -5.45  n=2023
+  band range (max - min) +1.70 (+1.22 to +2.25)
+  male +4.44 (+4.23 to +4.67)   female +2.09 (+1.87 to +2.31)   male-female +2.35 (+2.04 to +2.65)   band-adjusted +2.26 (+1.95 to +2.58)
+  corrected gap > +8: 32.78%   < -8: 13.61%
+  raw gap: band range +13.48 (+12.88 to +14.02)   male-female +2.86 (+2.55 to +3.19)   > +8 31.69%   < -8 16.03%
+
+== HALF SPLIT: refitted on 9247 patients: gap = 15.789 + -0.2194 x age; tested on 9248
+
+==   test half, brazil line
+  MAE raw 9.12   mean gap raw +2.80 (+2.57 to +3.04)   corrected +3.48 (+3.26 to +3.70)
+  r(gap, age) raw -0.309 (-0.325 to -0.294)   corrected +0.006 (-0.012 to +0.025)
+  slope raw -0.209 (-0.221 to -0.197)   corrected +0.004 (-0.008 to +0.016)
+  band  lt40: corrected +2.14 (+1.66 to +2.66)   raw +7.85
+  band 40-49: corrected +2.64 (+1.95 to +3.35)   raw +5.07
+  band 50-59: corrected +4.06 (+3.55 to +4.60)   raw +4.33
+  band 60-69: corrected +5.08 (+4.61 to +5.52)   raw +3.32
+  band 70-79: corrected +3.80 (+3.34 to +4.26)   raw -0.03
+  band  ge80: corrected +0.86 (+0.24 to +1.46)   raw -4.98
+  band range (max - min) +4.21 (+3.45 to +4.94)
+  male +4.85 (+4.55 to +5.15)   female +2.03 (+1.73 to +2.36)   male-female +2.81 (+2.38 to +3.24)   band-adjusted +2.55 (+2.10 to +2.97)
+  corrected gap > +8: 33.56%   < -8: 13.56%
+  raw gap: band range +12.83 (+12.03 to +13.68)   male-female +3.24 (+2.77 to +3.70)   > +8 31.53%   < -8 16.08%
+
+==   test half, german line
+  MAE raw 9.12   mean gap raw +2.80 (+2.57 to +3.04)   corrected +0.04 (-0.28 to +0.34)
+  r(gap, age) raw -0.309 (-0.325 to -0.294)   corrected +0.016 (-0.010 to +0.042)
+  slope raw -0.209 (-0.221 to -0.197)   corrected +0.010 (-0.007 to +0.027)
+  band  lt40: corrected -1.49 (-2.12 to -0.82)   raw +7.85
+  band 40-49: corrected -0.90 (-1.64 to -0.11)   raw +5.07
+  band 50-59: corrected +0.59 (+0.03 to +1.18)   raw +4.33
+  band 60-69: corrected +1.67 (+1.12 to +2.15)   raw +3.32
+  band 70-79: corrected +0.46 (-0.07 to +0.99)   raw -0.03
+  band  ge80: corrected -2.42 (-3.17 to -1.70)   raw -4.98
+  band range (max - min) +4.09 (+3.32 to +4.87)
+  male +1.40 (+1.01 to +1.77)   female -1.40 (-1.78 to -1.00)   male-female +2.80 (+2.36 to +3.23)   band-adjusted +2.55 (+2.10 to +2.97)
+  corrected gap > +8: 23.00%   < -8: 22.39%
+  raw gap: band range +12.83 (+12.03 to +13.68)   male-female +3.24 (+2.77 to +3.70)   > +8 31.53%   < -8 16.08%
+
+==   test half, brazil two step
+  MAE raw 9.12   mean gap raw +2.80 (+2.57 to +3.04)   corrected +3.32 (+3.10 to +3.55)
+  r(gap, age) raw -0.309 (-0.325 to -0.294)   corrected +0.013 (-0.005 to +0.032)
+  slope raw -0.209 (-0.221 to -0.197)   corrected +0.008 (-0.003 to +0.020)
+  band  lt40: corrected +2.57 (+2.08 to +3.09)   raw +7.85
+  band 40-49: corrected +3.23 (+2.54 to +3.94)   raw +5.07
+  band 50-59: corrected +3.44 (+2.94 to +3.99)   raw +4.33
+  band 60-69: corrected +3.94 (+3.47 to +4.38)   raw +3.32
+  band 70-79: corrected +3.38 (+2.92 to +3.83)   raw -0.03
+  band  ge80: corrected +2.67 (+2.04 to +3.26)   raw -4.98
+  band range (max - min) +1.37 (+0.95 to +2.14)
+  male +4.59 (+4.30 to +4.89)   female +1.99 (+1.68 to +2.30)   male-female +2.60 (+2.17 to +3.02)   band-adjusted +2.56 (+2.12 to +2.98)
+  corrected gap > +8: 33.03%   < -8: 13.48%
+  raw gap: band range +12.83 (+12.03 to +13.68)   male-female +3.24 (+2.77 to +3.70)   > +8 31.53%   < -8 16.08%
+
+==   test half, german two step
+  MAE raw 9.12   mean gap raw +2.80 (+2.57 to +3.04)   corrected +0.03 (-0.29 to +0.33)
+  r(gap, age) raw -0.309 (-0.325 to -0.294)   corrected +0.016 (-0.011 to +0.041)
+  slope raw -0.209 (-0.221 to -0.197)   corrected +0.010 (-0.007 to +0.026)
+  band  lt40: corrected -0.25 (-0.98 to +0.50)   raw +7.85
+  band 40-49: corrected +0.23 (-0.69 to +1.20)   raw +5.07
+  band 50-59: corrected -0.31 (-1.04 to +0.41)   raw +4.33
+  band 60-69: corrected +0.07 (-0.61 to +0.71)   raw +3.32
+  band 70-79: corrected -0.09 (-0.70 to +0.56)   raw -0.03
+  band  ge80: corrected +0.92 (+0.00 to +1.76)   raw -4.98
+  band range (max - min) +1.23 (+0.71 to +2.51)
+  male +1.21 (+0.82 to +1.58)   female -1.21 (-1.59 to -0.81)   male-female +2.41 (+1.96 to +2.85)   band-adjusted +2.55 (+2.09 to +2.99)
+  corrected gap > +8: 22.97%   < -8: 21.97%
+  raw gap: band range +12.83 (+12.03 to +13.68)   male-female +3.24 (+2.77 to +3.70)   > +8 31.53%   < -8 16.08%
+
+== SENSITIVITY, all ECGs (cluster bootstrap by patient), Brazil line: 21373 ECGs, 18495 patients, mean age 59.8, 52.5% male
+  MAE raw 9.21   mean gap raw +3.01 (+2.84 to +3.19)   corrected +3.78 (+3.62 to +3.94)
+  r(gap, age) raw -0.319 (-0.331 to -0.307)   corrected -0.011 (-0.025 to +0.004)
+  slope raw -0.220 (-0.229 to -0.211)   corrected -0.007 (-0.016 to +0.002)
+  band  lt40: corrected +2.62 (+2.21 to +3.04)   raw +8.31  n=2714
+  band 40-49: corrected +2.99 (+2.47 to +3.48)   raw +5.41  n=2462
+  band 50-59: corrected +4.60 (+4.20 to +5.00)   raw +4.88  n=4441
+  band 60-69: corrected +5.28 (+4.95 to +5.62)   raw +3.50  n=5248
+  band 70-79: corrected +4.03 (+3.70 to +4.38)   raw +0.21  n=4093
+  band  ge80: corrected +0.68 (+0.21 to +1.15)   raw -5.18  n=2415
+  band range (max - min) +4.60 (+4.03 to +5.18)
+  male +5.03 (+4.81 to +5.26)   female +2.40 (+2.16 to +2.63)   male-female +2.63 (+2.30 to +2.96)   band-adjusted +2.29 (+1.96 to +2.62)
+  corrected gap > +8: 34.63%   < -8: 13.25%
+  raw gap: band range +13.48 (+12.86 to +14.10)   male-female +2.98 (+2.64 to +3.35)   > +8 32.36%   < -8 15.64%
+
+== EXPLORATORY, NORM statement present, first ECG per patient, Brazil line: 8581 ECGs, 8581 patients, mean age 52.2, 45.6% male
+  MAE raw 8.51   mean gap raw +0.99 (+0.77 to +1.22)   corrected +0.15 (-0.05 to +0.36)
+  r(gap, age) raw -0.399 (-0.415 to -0.384)   corrected -0.070 (-0.090 to -0.051)
+  slope raw -0.254 (-0.266 to -0.243)   corrected -0.041 (-0.053 to -0.030)
+  band  lt40: corrected +0.97 (+0.65 to +1.30)   raw +6.79  n=2043
+  band 40-49: corrected -0.24 (-0.71 to +0.27)   raw +2.21  n=1503
+  band 50-59: corrected +0.05 (-0.40 to +0.54)   raw +0.40  n=1946
+  band 60-69: corrected +0.72 (+0.21 to +1.21)   raw -1.01  n=1677
+  band 70-79: corrected -0.05 (-0.68 to +0.55)   raw -3.84  n=1030
+  band  ge80: corrected -4.20 (-5.49 to -3.01)   raw -9.99  n=382
+  band range (max - min) +5.17 (+3.97 to +6.50)
+  male +1.27 (+0.96 to +1.56)   female -0.79 (-1.07 to -0.51)   male-female +2.06 (+1.66 to +2.46)   band-adjusted +1.97 (+1.55 to +2.37)
+  corrected gap > +8: 20.95%   < -8: 19.31%
+  raw gap: band range +16.78 (+15.52 to +18.11)   male-female +2.11 (+1.67 to +2.53)   > +8 25.54%   < -8 19.05%
+
+== EXPLORATORY, NORM statement absent, first ECG per patient, Brazil line: 9914 ECGs, 9914 patients, mean age 65.5, 56.6% male
+  MAE raw 9.64   mean gap raw +4.34 (+4.12 to +4.56)   corrected +6.32 (+6.12 to +6.53)
+  r(gap, age) raw -0.437 (-0.453 to -0.422)   corrected -0.198 (-0.218 to -0.179)
+  slope raw -0.365 (-0.381 to -0.349)   corrected -0.152 (-0.168 to -0.136)
+  band  lt40: corrected +8.30 (+7.15 to +9.47)   raw +13.66  n=448
+  band 40-49: corrected +8.43 (+7.55 to +9.30)   raw +10.81  n=701
+  band 50-59: corrected +8.48 (+7.99 to +8.97)   raw +8.70  n=1865
+  band 60-69: corrected +7.65 (+7.28 to +8.04)   raw +5.85  n=2785
+  band 70-79: corrected +5.46 (+5.10 to +5.83)   raw +1.60  n=2474
+  band  ge80: corrected +1.47 (+1.02 to +1.92)   raw -4.40  n=1641
+  band range (max - min) +7.01 (+6.59 to +8.17)
+  male +7.08 (+6.81 to +7.36)   female +5.33 (+5.03 to +5.65)   male-female +1.75 (+1.34 to +2.17)   band-adjusted +0.71 (+0.29 to +1.12)
+  corrected gap > +8: 44.12%   < -8: 8.89%
+  raw gap: band range +18.06 (+16.81 to +19.31)   male-female +2.89 (+2.44 to +3.34)   > +8 37.01%   < -8 13.42%
+
+== BRAZIL SPLIT HALF: line fitted on 116823 patients: gap = 11.9459 + -0.2127 x age; tested on 116824, raw r -0.3837
+  raw gap: older-looking 857/28223 died 3.04%, younger-looking 991/21694 4.57%, risk ratio 0.66 (0.61 to 0.73), rate ratio 0.68 (0.62 to 0.75)
+  half line: r -0.0015, mean +0.0212
+  half line: older-looking 1218/23654 died 5.15%, younger-looking 611/23597 2.59%, risk ratio 1.99 (1.81 to 2.19), rate ratio 2.05 (1.86 to 2.26)
+  full line: r -0.0007, mean +0.0106
+  full line: older-looking 1218/23629 died 5.15%, younger-looking 612/23633 2.59%, risk ratio 1.99 (1.81 to 2.19), rate ratio 2.05 (1.86 to 2.26)
+
+==   Germany, first ECG per patient, Brazil half-sample line: 18495 ECGs, 18495 patients, mean age 59.4, 51.5% male
+  MAE raw 9.11   mean gap raw +2.78 (+2.63 to +2.94)   corrected +3.47 (+3.32 to +3.62)
+  r(gap, age) raw -0.317 (-0.328 to -0.306)   corrected -0.002 (-0.016 to +0.010)
+  slope raw -0.214 (-0.223 to -0.206)   corrected -0.001 (-0.010 to +0.007)
+  band  lt40: corrected +2.31 (+1.95 to +2.66)   raw +8.03  n=2491
+  band 40-49: corrected +2.53 (+2.08 to +3.01)   raw +4.95  n=2204
+  band 50-59: corrected +4.19 (+3.82 to +4.55)   raw +4.46  n=3811
+  band 60-69: corrected +5.05 (+4.74 to +5.37)   raw +3.27  n=4462
+  band 70-79: corrected +3.84 (+3.52 to +4.16)   raw +0.01  n=3504
+  band  ge80: corrected +0.40 (-0.03 to +0.85)   raw -5.45  n=2023
+  band range (max - min) +4.65 (+4.10 to +5.20)
+  male +4.70 (+4.50 to +4.92)   female +2.15 (+1.94 to +2.38)   male-female +2.55 (+2.25 to +2.84)   band-adjusted +2.24 (+1.94 to +2.54)
+  corrected gap > +8: 33.41%   < -8: 13.71%
+  raw gap: band range +13.48 (+12.93 to +14.03)   male-female +2.86 (+2.54 to +3.17)   > +8 31.69%   < -8 16.03%
+
+== AGE WINDOW 18 to 85: Brazil n=230070 (3577 dropped), gap = 11.7879 + -0.2100 x age, raw r -0.3735; Germany 546 dropped
+  Brazil raw gap: older-looking 1687/54397 died 3.10%, younger-looking 1972/43111 4.57%, risk ratio 0.68 (0.64 to 0.72), rate ratio 0.69 (0.65 to 0.74)
+  Brazil corrected gap: older-looking 2409/46854 died 5.14%, younger-looking 1220/46938 2.60%, risk ratio 1.98 (1.85 to 2.12), rate ratio 2.03 (1.90 to 2.18)
+
+==   Germany, first ECG per patient, Brazil window line: 17949 ECGs, 17949 patients, mean age 58.5, 52.0% male
+  MAE raw 9.07   mean gap raw +3.15 (+2.98 to +3.30)   corrected +3.65 (+3.49 to +3.81)
+  r(gap, age) raw -0.285 (-0.296 to -0.273)   corrected +0.024 (+0.012 to +0.037)
+  slope raw -0.194 (-0.202 to -0.185)   corrected +0.016 (+0.008 to +0.025)
+  band  lt40: corrected +2.39 (+2.02 to +2.75)   raw +8.03  n=2491
+  band 40-49: corrected +2.57 (+2.11 to +3.04)   raw +4.95  n=2204
+  band 50-59: corrected +4.20 (+3.83 to +4.55)   raw +4.46  n=3811
+  band 60-69: corrected +5.04 (+4.71 to +5.36)   raw +3.27  n=4462
+  band 70-79: corrected +3.80 (+3.48 to +4.11)   raw +0.01  n=3504
+  band  ge80: corrected +1.44 (+0.95 to +1.89)   raw -4.07  n=1477
+  band range (max - min) +3.60 (+3.05 to +4.16)
+  male +4.91 (+4.70 to +5.12)   female +2.28 (+2.05 to +2.50)   male-female +2.63 (+2.33 to +2.94)   band-adjusted +2.43 (+2.13 to +2.73)
+  corrected gap > +8: 34.00%   < -8: 13.38%
+  raw gap: band range +12.09 (+11.50 to +12.69)   male-female +2.83 (+2.52 to +3.15)   > +8 32.59%   < -8 15.18%
+
+== SEX-SPECIFIC BRAZIL LINES: male gap = 12.1915 + -0.2100 x age   female gap = 11.8635 + -0.2159 x age
+
+==   Germany, first ECG per patient, each sex corrected by its own Brazil line: 18495 ECGs, 18495 patients, mean age 59.4, 51.5% male
+  MAE raw 9.11   mean gap raw +2.78 (+2.62 to +2.95)   corrected +3.39 (+3.24 to +3.54)
+  r(gap, age) raw -0.317 (-0.328 to -0.306)   corrected +0.000 (-0.013 to +0.013)
+  slope raw -0.214 (-0.223 to -0.206)   corrected +0.000 (-0.008 to +0.008)
+  band  lt40: corrected +2.24 (+1.89 to +2.61)   raw +8.03  n=2491
+  band 40-49: corrected +2.45 (+1.95 to +2.93)   raw +4.95  n=2204
+  band 50-59: corrected +4.07 (+3.71 to +4.44)   raw +4.46  n=3811
+  band 60-69: corrected +4.93 (+4.64 to +5.24)   raw +3.27  n=4462
+  band 70-79: corrected +3.80 (+3.49 to +4.13)   raw +0.01  n=3504
+  band  ge80: corrected +0.45 (+0.01 to +0.92)   raw -5.45  n=2023
+  band range (max - min) +4.48 (+3.94 to +5.00)
+  male +4.30 (+4.09 to +4.51)   female +2.43 (+2.21 to +2.65)   male-female +1.87 (+1.58 to +2.17)   band-adjusted +1.57 (+1.27 to +1.87)
+  corrected gap > +8: 33.05%   < -8: 13.93%
+  raw gap: band range +13.48 (+12.91 to +14.07)   male-female +2.86 (+2.54 to +3.17)   > +8 31.69%   < -8 16.03%
+
+== Amplitude, CODE-15% (998 ECGs) against PTB-XL (21373 ECGs), input units:
+  I 1.77/0.92  II 2.04/0.93  III 1.44/0.76  AVR 1.78/0.85  AVL 1.29/0.71  AVF 1.50/0.70  V1 2.22/1.10  V2 2.85/1.79  V3 3.29/1.82  V4 3.50/1.85  V5 3.36/1.61  V6 2.74/1.24
+  ratio 1.59 to 2.20, median over leads 1.967
+
+== SCALE SENSITIVITY, PTB-XL fed at x1.967, first ECG per patient, Brazil line: 18495 ECGs, 18495 patients, mean age 59.4, 51.5% male
+  MAE raw 8.90   mean gap raw +1.77 (+1.61 to +1.94)   corrected +2.45 (+2.29 to +2.61)
+  r(gap, age) raw -0.258 (-0.269 to -0.246)   corrected +0.060 (+0.047 to +0.073)
+  slope raw -0.174 (-0.182 to -0.165)   corrected +0.039 (+0.031 to +0.048)
+  band  lt40: corrected -0.13 (-0.49 to +0.24)   raw +5.61  n=2491
+  band 40-49: corrected +0.62 (+0.12 to +1.10)   raw +3.04  n=2204
+  band 50-59: corrected +3.08 (+2.70 to +3.46)   raw +3.37  n=3811
+  band 60-69: corrected +4.62 (+4.30 to +4.92)   raw +2.85  n=4462
+  band 70-79: corrected +3.36 (+3.06 to +3.68)   raw -0.48  n=3504
+  band  ge80: corrected +0.03 (-0.42 to +0.45)   raw -5.82  n=2023
+  band range (max - min) +4.75 (+4.34 to +5.26)
+  male +3.55 (+3.34 to +3.76)   female +1.28 (+1.06 to +1.50)   male-female +2.27 (+1.98 to +2.58)   band-adjusted +1.97 (+1.67 to +2.28)
+  corrected gap > +8: 30.72%   < -8: 16.39%
+  raw gap: band range +11.43 (+10.86 to +12.00)   male-female +2.58 (+2.27 to +2.89)   > +8 28.19%   < -8 18.30%
+
+==   German line at the matched scale: gap = 12.085 (11.569 to 12.599) + -0.1737 (-0.1821 to -0.1653) x age
+[ 222.9s] wrote results/germany.json
+397 of 397 quoted Germany numbers match the code's output
+manuscript check skipped (set PAPER_A_MANUSCRIPT to run it)
+dash hygiene checked on 2 files
+VERIFY GERMANY: PASS
+./run.sh  161.07s user 18.72s system 60% cpu 4:57.95 total
+exit 0

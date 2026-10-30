@@ -8,7 +8,7 @@
 
 **The AI ECG age gap is confounded by chronological age itself (r = -0.3842 on 233,647 Brazilian patients), and the confound is large enough to reverse the crude survival result.** Split this cohort the way the 2021 paper that made the biomarker famous split it, and the older-looking hearts die *less* (3.02% against 4.57%), because the raw split is really sorting people by age: mean age 42.2 in the older-looking group against 62.9 in the younger-looking one. Regress the gap on age, keep the residual, and the direction reverses to 5.14% against 2.57%. The age balance that comes with it (52.7 against 52.2) is built into the correction, so it proves nothing on its own. The direction of the mortality difference is not built in, and it holds per person-year of follow-up (14.07 against 6.83 deaths per 1,000 person-years) and with the corrected groups cut to the same sizes as the raw ones.
 
-**This is a replication, not a discovery.** Correcting the AI-ECG predicted age for its regression on chronological age was applied by Hirota et al. on a Japanese cohort ([doi 10.1016/j.ijcha.2023.101172](https://doi.org/10.1016/j.ijcha.2023.101172), 2023) and, as a residual of the gap on age with mortality as the outcome, by Barthels et al. on a Belgian cohort ([doi 10.1093/ehjdh/ztaf137](https://doi.org/10.1093/ehjdh/ztaf137), first published 28 November 2025), who reported r = -0.54 and the same reversal. What is repeated here is Barthels' method on CODE-15%. What is not in Barthels et al. or the 2021 paper is section 4 below.
+**This is a replication, not a discovery.** Correcting the AI-ECG predicted age for its regression on chronological age was applied by Hirota et al. on a Japanese cohort ([doi 10.1016/j.ijcha.2023.101172](https://doi.org/10.1016/j.ijcha.2023.101172), 2023) and, as a residual of the gap on age with mortality as the outcome, by Barthels et al. on a Belgian cohort ([doi 10.1093/ehjdh/ztaf137](https://doi.org/10.1093/ehjdh/ztaf137), first published 28 November 2025), who reported r = -0.54 and the same reversal. What is repeated here is the first, linear step of Barthels' correction, fitted in-sample on CODE-15%; their second step (subtracting the mean corrected gap at each integer age) and their separate validation set are not used. What is not in Barthels et al. or the 2021 paper is section 4 below.
 
 ![Share of the older-looking and younger-looking groups who died, before and after correcting the age gap for chronological age](figure.svg)
 
@@ -426,6 +426,16 @@ On CODE-15% the fit is a = 11.9755 and b = -0.2131 (section 1). Fit a and b on
 your own cohort rather than reusing these. Then check what section 4 checks: a
 fit on everyone can leave the corrected gap offset between men and women.
 
+## Does the correction transfer to another country?
+
+[`germany/`](germany/) tests exactly that advice. It runs the same published
+network on the German PTB-XL cohort and applies the line fitted here without
+refitting, then measures what the line leaves behind: level, shape by age band
+and the offset between men and women. PTB-XL has no outcomes, so it is about the
+bias of the gap only. Unlike this folder it needs the raw waveforms (about 49 GB),
+torch and a few other packages; `germany/README.md` has the one command, and its
+committed results can be checked without any data by `python germany/verify_germany.py`.
+
 ---
 
 ## Data
@@ -461,6 +471,7 @@ and anything over 1 MB ships in `.githooks/`; switch it on once per clone with
 | `make_figure.py` | draws `figure.svg` at the top of this page from `results/results.json`. Standard library only, reads numbers and computes nothing new |
 | `crosscheck_lifelines.py` | optional. Re-fits the same models with lifelines and compares. The only reason `requirements.txt` is not empty |
 | `Makefile` | optional convenience. Every target is one python command |
+| `germany/` | the transportability test on PTB-XL, with its own README, dependencies and committed results |
 
 ## Is the Cox implementation right?
 
