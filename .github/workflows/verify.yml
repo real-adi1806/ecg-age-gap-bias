@@ -19,20 +19,23 @@ on:
     - cron: "17 6 * * 1"
   workflow_dispatch:
 
+# Runners are pinned to ubuntu-24.04: ubuntu-latest moved to 26.04 in November 2026,
+# which has no Python 3.9 build, and the oldest supported Python is part of what is tested.
+
 permissions:
   contents: read
 
 jobs:
   checks:
     name: hygiene and python ${{ matrix.python }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         python: ["3.9", "3.11", "3.13"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python }}
       - name: repository hygiene
@@ -46,11 +49,11 @@ jobs:
 
   reproduce:
     name: full reproduce from the published data
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.event_name != 'pull_request'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - name: download, checksum and analyse
@@ -58,7 +61,7 @@ jobs:
       - name: assert every number quoted in README.md
         run: python verify.py
       - name: keep the machine-readable results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: results
           path: results/*.json
