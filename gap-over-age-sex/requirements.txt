@@ -1,0 +1,6 @@
+# Python 3.12 or newer.
+# These are the versions the scripts were last run with (11 Nov 2026, Python 3.14.7).
+lifelines==0.30.3
+pandas==2.3.3
+numpy==2.5.4
+matplotlib==3.11.2

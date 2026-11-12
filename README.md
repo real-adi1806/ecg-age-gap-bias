@@ -436,6 +436,15 @@ bias of the gap only. Unlike this folder it needs the raw waveforms (about 49 GB
 torch and a few other packages; `germany/README.md` has the one command, and its
 committed results can be checked without any data by `python germany/verify_germany.py`.
 
+## Does the gap add anything once age and sex are in the model?
+
+[`gap-over-age-sex/`](gap-over-age-sex/) asks the prediction question that follows
+from the correction: on the same cohort, a Cox model of age and sex against the
+same model plus the gap, scored by held-out concordance. The corrected and the raw
+gap give identical scores once age is in the model, so the correction only matters
+when the gap is used without age. It needs lifelines, pandas, numpy and matplotlib;
+its committed results regenerate in about ten minutes.
+
 ---
 
 ## Data
@@ -472,6 +481,7 @@ and anything over 1 MB ships in `.githooks/`; switch it on once per clone with
 | `crosscheck_lifelines.py` | optional. Re-fits the same models with lifelines and compares. The only reason `requirements.txt` is not empty |
 | `Makefile` | optional convenience. Every target is one python command |
 | `germany/` | the transportability test on PTB-XL, with its own README, dependencies and committed results |
+| `gap-over-age-sex/` | held-out concordance of age and sex with and without the gap, with its own README, dependencies and committed results |
 
 ## Is the Cox implementation right?
 
