@@ -1,0 +1,18 @@
+REPRODUCED: split {'train': 186917, 'test': 46730, 'train_deaths': 6620, 'test_deaths': 1721}, held-out C age+sex 0.789967, age+sex+gap 0.798810, HR gap 1.028841
+horizon 2: max |risk raw-gap model - risk corrected-gap model| = 6.66e-16
+  KM risk 0.0221, deaths by horizon 972, censored before 20.8%
+  O/E age+sex 1.047, age+sex+gap 1.046
+  gap minus age+sex: band 0.005-0.100 mean +0.00028 [+0.00010, +0.00047]; full +0.00018 [+0.00008, +0.00029]
+  CI above 0 at [0.005, 0.01, 0.0125, 0.015, 0.0625, 0.0775, 0.08, 0.0825, 0.085, 0.0925, 0.1075, 0.11, 0.1125, 0.115]
+  CI below 0 at []
+  age_sex minus best default: band +0.00335 [+0.00279, +0.00393]
+  age_sex_gap minus best default: band +0.00363 [+0.00302, +0.00425]
+horizon 4: max |risk raw-gap model - risk corrected-gap model| = 1.11e-15
+  KM risk 0.0391, deaths by horizon 1457, censored before 56.3%
+  O/E age+sex 1.037, age+sex+gap 1.037
+  gap minus age+sex: band 0.005-0.100 mean +0.00056 [+0.00026, +0.00084]; full +0.00053 [+0.00027, +0.00079]
+  CI above 0 at [0.01, 0.0125, 0.0175, 0.02, 0.0225, 0.025, 0.0275, 0.03, 0.0325, 0.065, 0.0675, 0.07, 0.0725, 0.08, 0.0825, 0.095, 0.0975, 0.1, 0.1025, 0.105, 0.1075, 0.11, 0.1125, 0.115, 0.1175, 0.125, 0.1275, 0.1325, 0.135, 0.14, 0.1425]
+  CI below 0 at []
+  age_sex minus best default: band +0.00930 [+0.00835, +0.01034]
+  age_sex_gap minus best default: band +0.00986 [+0.00892, +0.01087]
+runtime 121.0 s
