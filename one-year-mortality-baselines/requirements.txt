@@ -1,0 +1,8 @@
+# Python 3.12 or newer.
+# These are the versions the scripts were last run with (14 Nov 2026, Python 3.12.15).
+numpy==2.5.4
+pandas==3.1.0
+scipy==1.18.1
+scikit-learn==1.9.1
+matplotlib==3.11.2
+# Tests run with or without pytest: python tests/test_ladder.py
