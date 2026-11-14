@@ -57,7 +57,7 @@ Published by Gu et al. on their own test split, for reference only:
 
 From 40 up, age and sex reach only 0.60 to 0.67 within a band, and the frozen network adds 0.08 to 0.11 with intervals above zero. The 16 to 39 band has 16 deaths and says little. So the ECG carries mortality signal beyond age; the question this folder asks is how much of a foundation model's headline number that older signal, plus age and sex, already accounts for.
 
-- Age and sex alone reach 0.809 on split 0. This is not new: Lima et al. reported 0.80 (95% CI 0.79 to 0.81) for a Cox model with age and sex for 1-year mortality on this cohort [2]. The rhythm labels add +0.016; the ECG-age gap adds +0.005, with an interval that includes zero.
+- Age and sex alone reach 0.809 on split 0. A strong demographic baseline on CODE-15% is already known: Lukyanenko et al. report a concordance of 0.79 for death from demographics alone [4], and Lima et al. report an AUC of 0.80 (95% CI 0.79 to 0.81) for 1-year mortality from their Cox model of ECG-age groups adjusted for age and sex [2]. The rhythm labels add +0.016; the ECG-age gap adds +0.005, with an interval that includes zero.
 - A linear model on the 2021 network's frozen features, with age and sex, reaches 0.843 on split 0 and between 0.829 and 0.847 across the five splits. The Lima network reads 12 leads, so the 12-lead published values are the like-for-like ones, and they were measured on a different split.
 - That model is well calibrated on the held-out patients: slope 1.00 (95% CI 0.91 to 1.09), intercept in the large +0.01.
 - On a decision curve it has higher net benefit than age and sex at thresholds from 1% to 5%; the gain is small in absolute terms because death within a year is rare (about 1.25%).
@@ -128,6 +128,7 @@ No patient data are stored in this repository.
 1. Gu, X., Tang, W., Han, J. et al. Cardiac health assessment across scenarios and devices using a multimodal foundation model pretrained on data from 1.7 million individuals. *Nature Machine Intelligence* 8(2), 220-233 (2026). https://doi.org/10.1038/s42256-026-01180-5
 2. Lima, E. M., Ribeiro, A. H., Paixao, G. M. M. et al. Deep neural network-estimated electrocardiographic age as a mortality predictor. *Nature Communications* 12, 5117 (2021). https://doi.org/10.1038/s41467-021-25351-7
 3. Vickers, A. J., Elkin, E. B. Decision curve analysis: a novel method for evaluating prediction models. *Medical Decision Making* 26(6), 565-574 (2006). https://doi.org/10.1177/0272989X06295361
+4. Lukyanenko, P., Mayourian, J., Liu, M., Triedman, J. K., Ghelani, S. J., La Cava, W. G. Deep survival analysis from adult and pediatric electrocardiograms: a multi-center benchmark study. *BioData Mining* (2025). https://doi.org/10.1186/s13040-025-00510-4
 
 ## Author and licence
 
