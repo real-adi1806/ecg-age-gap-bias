@@ -1,0 +1,81 @@
+{
+ "cohort": {
+  "patients": 233647,
+  "deaths_1y": 2812,
+  "survivors_1y": 222057,
+  "short_follow_up": 8778,
+  "expected": {
+   "patients": 233647,
+   "deaths_1y": 2812,
+   "survivors_1y": 222057,
+   "short_follow_up": 8778
+  },
+  "death_rate_main": 0.01250505850072709,
+  "death_rate_sensitivity_a": 0.012035249757112225,
+  "published_death_rate": 0.0123,
+  "median_age": 51.0,
+  "male_share": 0.4054663659280881
+ },
+ "features": {
+  "patients_with_outcome_exam_features": 217932,
+  "patients_without": 15715,
+  "main_cohort_with": 209154,
+  "deaths_1y_with": 2780,
+  "deaths_1y_without": 32,
+  "death_rate_with": 0.013291641565545005,
+  "death_rate_without": 0.002036271078587337,
+  "feature_columns": 5120
+ }
+}
+seed 0: row1_age 0.7987, row2_age_sex 0.8089, row3_age_sex_rhythm 0.8247, row4_age_sex_gap 0.8141, check_age_sex_predicted_age 0.8141, row5b_lima_only 0.8242, row5_age_sex_lima 0.8433 [91.8s]
+seed 1: row1_age 0.7730, row2_age_sex 0.7796, row3_age_sex_rhythm 0.8016, row4_age_sex_gap 0.7839, check_age_sex_predicted_age 0.7839, row5b_lima_only 0.8077, row5_age_sex_lima 0.8293 [173.6s]
+seed 2: row1_age 0.8022, row2_age_sex 0.8052, row3_age_sex_rhythm 0.8210, row4_age_sex_gap 0.8120, check_age_sex_predicted_age 0.8120, row5b_lima_only 0.8327, row5_age_sex_lima 0.8468 [253.4s]
+seed 3: row1_age 0.7901, row2_age_sex 0.7941, row3_age_sex_rhythm 0.8094, row4_age_sex_gap 0.8073, check_age_sex_predicted_age 0.8073, row5b_lima_only 0.8305, row5_age_sex_lima 0.8367 [335.0s]
+seed 4: row1_age 0.8125, row2_age_sex 0.8169, row3_age_sex_rhythm 0.8271, row4_age_sex_gap 0.8219, check_age_sex_predicted_age 0.8219, row5b_lima_only 0.8233, row5_age_sex_lima 0.8437 [423.7s]
+primary extras done
+sensitivity A done
+{
+ "1_age_alone_whole_cohort": {
+  "auc": 0.7871579735037979,
+  "pilot": 0.787,
+  "pass": true
+ },
+ "2_rank_formula_vs_sklearn": {
+  "largest_absolute_difference": 2.220446049250313e-16,
+  "pass": true
+ },
+ "3_shuffled_labels": {
+  "auc": {
+   "row1_age": 0.5165097769821748,
+   "row2_age_sex": 0.5332653391643669,
+   "row3_age_sex_rhythm": 0.5272242554409818,
+   "row4_age_sex_gap": 0.5312840561601345,
+   "check_age_sex_predicted_age": 0.5312840561601345,
+   "row5b_lima_only": 0.5040304382147963,
+   "row5_age_sex_lima": 0.5050450453746738
+  },
+  "pass": true
+ },
+ "4_no_patient_in_two_splits": {
+  "overlaps": [
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pass": true
+ },
+ "5_gap_equals_predicted_age_given_age": {
+  "largest_auc_difference": 0.0,
+  "pass": true
+ },
+ "stop_rule_row5_not_above_0.86": {
+  "largest_row5_auc": 0.8468353569393252,
+  "pass": true
+ },
+ "ridge_converged_and_penalty_inside_grid": {
+  "pass": true
+ },
+ "all_passed": true
+}
