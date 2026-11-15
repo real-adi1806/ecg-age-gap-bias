@@ -1,3 +1,7 @@
+/Users/real-adi1806/systoliq-v2-claude/ecg-age-bias/one-year-mortality-baselines/analysis.py:287: RuntimeWarning: Mean of empty slice
+  "death_rate_without": float(y[~has & main_cohort].mean()),
+/Users/real-adi1806/systoliq-v2-claude/ecg-age-model/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
 {
  "cohort": {
   "patients": 233647,
@@ -17,21 +21,21 @@
   "male_share": 0.4054663659280881
  },
  "features": {
-  "patients_with_outcome_exam_features": 217932,
-  "patients_without": 15715,
-  "main_cohort_with": 209154,
-  "deaths_1y_with": 2780,
-  "deaths_1y_without": 32,
-  "death_rate_with": 0.013291641565545005,
-  "death_rate_without": 0.002036271078587337,
+  "patients_with_outcome_exam_features": 233647,
+  "patients_without": 0,
+  "main_cohort_with": 224869,
+  "deaths_1y_with": 2812,
+  "deaths_1y_without": 0,
+  "death_rate_with": 0.01250505850072709,
+  "death_rate_without": NaN,
   "feature_columns": 5120
  }
 }
-seed 0: row1_age 0.7987, row2_age_sex 0.8089, row3_age_sex_rhythm 0.8247, row4_age_sex_gap 0.8141, check_age_sex_predicted_age 0.8141, row5b_lima_only 0.8242, row5_age_sex_lima 0.8433 [91.8s]
-seed 1: row1_age 0.7730, row2_age_sex 0.7796, row3_age_sex_rhythm 0.8016, row4_age_sex_gap 0.7839, check_age_sex_predicted_age 0.7839, row5b_lima_only 0.8077, row5_age_sex_lima 0.8293 [173.6s]
-seed 2: row1_age 0.8022, row2_age_sex 0.8052, row3_age_sex_rhythm 0.8210, row4_age_sex_gap 0.8120, check_age_sex_predicted_age 0.8120, row5b_lima_only 0.8327, row5_age_sex_lima 0.8468 [253.4s]
-seed 3: row1_age 0.7901, row2_age_sex 0.7941, row3_age_sex_rhythm 0.8094, row4_age_sex_gap 0.8073, check_age_sex_predicted_age 0.8073, row5b_lima_only 0.8305, row5_age_sex_lima 0.8367 [335.0s]
-seed 4: row1_age 0.8125, row2_age_sex 0.8169, row3_age_sex_rhythm 0.8271, row4_age_sex_gap 0.8219, check_age_sex_predicted_age 0.8219, row5b_lima_only 0.8233, row5_age_sex_lima 0.8437 [423.7s]
+seed 0: row1_age 0.7949, row2_age_sex 0.8056, row3_age_sex_rhythm 0.8209, row4_age_sex_gap 0.8109, check_age_sex_predicted_age 0.8109, row5b_lima_only 0.8212, row5_age_sex_lima 0.8402 [99.3s]
+seed 1: row1_age 0.7698, row2_age_sex 0.7767, row3_age_sex_rhythm 0.7968, row4_age_sex_gap 0.7803, check_age_sex_predicted_age 0.7803, row5b_lima_only 0.8037, row5_age_sex_lima 0.8259 [186.1s]
+seed 2: row1_age 0.8008, row2_age_sex 0.8032, row3_age_sex_rhythm 0.8174, row4_age_sex_gap 0.8099, check_age_sex_predicted_age 0.8099, row5b_lima_only 0.8318, row5_age_sex_lima 0.8462 [270.5s]
+seed 3: row1_age 0.7893, row2_age_sex 0.7936, row3_age_sex_rhythm 0.8070, row4_age_sex_gap 0.8065, check_age_sex_predicted_age 0.8065, row5b_lima_only 0.8278, row5_age_sex_lima 0.8344 [356.8s]
+seed 4: row1_age 0.8101, row2_age_sex 0.8152, row3_age_sex_rhythm 0.8235, row4_age_sex_gap 0.8203, check_age_sex_predicted_age 0.8203, row5b_lima_only 0.8237, row5_age_sex_lima 0.8424 [439.6s]
 primary extras done
 sensitivity A done
 {
@@ -46,13 +50,13 @@ sensitivity A done
  },
  "3_shuffled_labels": {
   "auc": {
-   "row1_age": 0.5165097769821748,
-   "row2_age_sex": 0.5332653391643669,
-   "row3_age_sex_rhythm": 0.5272242554409818,
-   "row4_age_sex_gap": 0.5312840561601345,
-   "check_age_sex_predicted_age": 0.5312840561601345,
-   "row5b_lima_only": 0.5040304382147963,
-   "row5_age_sex_lima": 0.5050450453746738
+   "row1_age": 0.5110127537812768,
+   "row2_age_sex": 0.5262825909107077,
+   "row3_age_sex_rhythm": 0.5219559486686981,
+   "row4_age_sex_gap": 0.5261369914987966,
+   "check_age_sex_predicted_age": 0.5261369914987966,
+   "row5b_lima_only": 0.5015663398189097,
+   "row5_age_sex_lima": 0.5022416143986911
   },
   "pass": true
  },
@@ -71,10 +75,15 @@ sensitivity A done
   "pass": true
  },
  "stop_rule_row5_not_above_0.86": {
-  "largest_row5_auc": 0.8468353569393252,
+  "largest_row5_auc": 0.8461634162420953,
   "pass": true
  },
  "ridge_converged_and_penalty_inside_grid": {
+  "pass": true
+ },
+ "8_every_patient_has_outcome_exam_features": {
+  "patients_without": 0,
+  "largest_rows_1_to_4_difference_all_vs_subset": 0.0,
   "pass": true
  },
  "all_passed": true

@@ -18,9 +18,12 @@ Rows (fitted on the training patients, any penalty chosen on the validation pati
     row5b_lima_only       the same ridge model without age and sex (the ECG alone, as a network sees it)
     check_age_sex_predicted_age   row 2 plus the predicted age itself: must equal row 4 (same information)
 
-Row 5 needs the saved features of the exam the outcome is attached to. They exist for 217,932 of the 233,647
-patients (see README.md), so rows 5 and 5b are scored on that subset of each test split, and rows 1 to 4 are scored
-both on the whole test split and on the subset.
+Row 5 needs the network's features for the exam the outcome is attached to. The saved code_part files hold each
+patient's lowest exam id, which is the outcome exam for 217,932 of the 233,647 patients; extract_outcome_exams.py
+writes the other 15,715 to code_outcome_part files, and this script reads both (DATA_EXCLUSIONS.md). Check 8 stops
+the run if any patient is still without features. The output keeps two blocks per split, test_all and
+test_with_features; with every patient covered they hold the same patients, and check 8 confirms that rows 1 to 4
+agree between them.
 
 Results are written to disk after every block, so an interrupted run leaves usable output.
 """
@@ -54,6 +57,7 @@ SMALL = {"row2_age_sex": BASE,
          "row4_age_sex_gap": BASE + ["gap"],
          "check_age_sex_predicted_age": BASE + ["nn_predicted_age"]}
 REF = "row2_age_sex"
+FEATURE_PREFIXES = ("code_part", "code_outcome_part")   # lowest exam id per patient, then the outcome exams it misses
 
 
 def save(res, path):
@@ -232,6 +236,11 @@ def run_checks(res, c, y, main):
     ridge = [s["ridge"][k] for s in res["seeds"].values() for k in ("row5_age_sex_lima", "row5b_lima_only")]
     ch["ridge_converged_and_penalty_inside_grid"] = {
         "pass": all(r["all_converged"] and not r["chosen_at_grid_edge"] for r in ridge)}
+    same = max(abs(s["test_all"]["auc"][k] - s["test_with_features"]["auc"][k])
+               for s in res["seeds"].values() for k in s["test_all"]["auc"])
+    ch["8_every_patient_has_outcome_exam_features"] = {
+        "patients_without": res["features"]["patients_without"], "largest_rows_1_to_4_difference_all_vs_subset": same,
+        "pass": res["features"]["patients_without"] == 0 and same == 0}
     ch["all_passed"] = all(v["pass"] for v in ch.values())
     return ch
 
@@ -241,7 +250,7 @@ def main():
     ap.add_argument("--boot", type=int, default=200, help="bootstrap resamples (the reported run used 1000)")
     ap.add_argument("--data", default=os.path.join(HERE, "..", "data", "exams.csv"), help="path to exams.csv")
     ap.add_argument("--features", default=os.path.join(HERE, "..", "..", "ecg-age-model", "features"),
-                    help="folder holding code_part{k}_feat.npy and code_part{k}_ids.npy")
+                    help="folder holding code_part{k} and code_outcome_part{k} _feat.npy and _ids.npy")
     ap.add_argument("--out", default=os.path.join(HERE, "results", "results.json"))
     args = ap.parse_args()
     if args.boot < 1:
@@ -269,7 +278,7 @@ def main():
         sys.exit(f"STOP: cohort counts {got} do not match the pilot {EXPECT}. Nothing was fitted.")
 
     # ---- the saved features, matched on the outcome exam ----
-    X, row = L.load_features(args.features, c["exam_id"].values)
+    X, row = L.load_features(args.features, c["exam_id"].values, prefixes=FEATURE_PREFIXES)
     has = row >= 0
     res["features"] = {"patients_with_outcome_exam_features": int(has.sum()), "patients_without": int((~has).sum()),
                        "main_cohort_with": int((has & main_cohort).sum()),

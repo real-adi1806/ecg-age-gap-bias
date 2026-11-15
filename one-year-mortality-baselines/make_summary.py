@@ -13,6 +13,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 src = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "results", "results.json")
 r = json.load(open(src))
 pub = json.load(open(os.path.join(HERE, "results", "published_fig3a.json")))
+ext = json.load(open(os.path.join(HERE, "results", "outcome_extraction.json")))
 if "checks" not in r or not r["checks"]["all_passed"]:
     sys.exit("STOP: results.json has no passed checks. SUMMARY.md was not written.")
 
@@ -53,6 +54,8 @@ dc = r["primary"]["decision_curve_test_with_features"]
 sa = r["sensitivity_a_primary"]
 rd = seeds[P]["ridge"]
 r5 = [s["test_with_features"]["auc"]["row5_age_sex_lima"] for s in seeds.values()]
+subset = fe["patients_without"] > 0          # False once extract_outcome_exams.py has covered every patient
+WHO = "feature subset" if subset else "all test patients"
 
 L = [
     "# One-year mortality on CODE-15%: the rows under a foundation model",
@@ -72,22 +75,27 @@ L = [
     f"- Split by patient, 80/10/10, stratified on the label, five times (splits 0 to 4). Split 0: "
     f"{n0['train']:,} train ({n0['train_deaths']:,} deaths), {n0['val']:,} validation ({n0['val_deaths']} deaths), "
     f"{n0['test']:,} test ({n0['test_deaths']} deaths).",
-    f"- The saved network features belong to the outcome exam for {fe['patients_with_outcome_exam_features']:,} "
-    f"patients. For the other {fe['patients_without']:,} the saved row is a different, usually later, exam, so they "
-    f"cannot be used for row 5 without leaking the future. Those patients all have two or more exams and a 1-year "
-    f"death rate of {100 * fe['death_rate_without']:.2f}% against {100 * fe['death_rate_with']:.2f}% in the rest, "
-    "so the feature subset is not a random sample.",
+    *([f"- The saved network features belong to the outcome exam for {fe['patients_with_outcome_exam_features']:,} "
+       f"patients. For the other {fe['patients_without']:,} the saved row is a different, usually later, exam, so they "
+       f"cannot be used for row 5 without leaking the future. Those patients all have two or more exams and a 1-year "
+       f"death rate of {100 * fe['death_rate_without']:.2f}% against {100 * fe['death_rate_with']:.2f}% in the rest, "
+       "so the feature subset is not a random sample."] if subset else
+      [f"- Network features come from the exam the outcome is attached to, for every patient: "
+       f"{fe['patients_with_outcome_exam_features'] - ext['extracted']:,} from the saved features of each patient's "
+       f"lowest exam id, and {ext['extracted']:,} extracted from the outcome exam's trace by `extract_outcome_exams.py` "
+       f"(its predicted ages match `nn_predicted_age` in `exams.csv` to "
+       f"{ext['agreement_with_nn_predicted_age']['max_abs_diff_years']:.4f} years). An earlier version left those "
+       f"{ext['extracted']:,} patients out; `DATA_EXCLUSIONS.md` says why and what changed."]),
     "",
     "## The ladder",
     "",
-    f"Table A. Test patients whose outcome exam has saved features (split 0: {tf['patients']:,} patients, "
-    f"{tf['deaths']} deaths). All six rows are scored on the same patients, so the differences are paired.",
-    "",
-    *table("test_with_features"),
-    "",
-    f"Table B. Every test patient (split 0: {ta['patients']:,} patients, {ta['deaths']} deaths). Rows 1 to 4 only.",
-    "",
-    *table("test_all"),
+    *([f"Table A. Test patients whose outcome exam has saved features (split 0: {tf['patients']:,} patients, "
+       f"{tf['deaths']} deaths). All six rows are scored on the same patients, so the differences are paired.",
+       "", *table("test_with_features"), "",
+       f"Table B. Every test patient (split 0: {ta['patients']:,} patients, {ta['deaths']} deaths). Rows 1 to 4 only.",
+       "", *table("test_all")] if subset else
+      [f"Every test patient of split 0: {tf['patients']:,} patients, {tf['deaths']} deaths. All six rows are scored "
+       "on the same patients, so the differences are paired.", "", *table("test_with_features")]),
     "",
     "Intervals are 95% bootstrap intervals over the test patients of split 0. The range across the five splits shows "
     f"how much the choice of split moves each row: row 5 runs from {f(min(r5))} to {f(max(r5))}.",
@@ -120,18 +128,18 @@ L += [
     "| Model | Patients | Slope (95% CI) | Intercept in the large (95% CI) | Mean predicted | Observed |",
     "|---|---|---|---|---|---|",
 ]
-for blk, who in (("test_with_features", "feature subset"), ("test_all", "all test")):
+for blk, who in ((("test_with_features", "feature subset"), ("test_all", "all test")) if subset
+                 else (("test_with_features", "all test"),)):
     for k, v in cal[blk].items():
         L.append(f"| {NAMES[k][1]} | {who} | {v['slope']:.2f} ({v['slope_ci95'][0]:.2f} to {v['slope_ci95'][1]:.2f}) | "
                  f"{v['intercept_in_the_large']:+.2f} ({v['intercept_in_the_large_ci95'][0]:+.2f} to "
                  f"{v['intercept_in_the_large_ci95'][1]:+.2f}) | {100 * v['mean_predicted']:.2f}% | "
                  f"{100 * v['observed_rate']:.2f}% |")
 L += [
+    *(["", "Rows 2 and 4 are fitted on every training patient, so on the feature subset (a higher-risk group) they "
+       "under-predict a little; that is the positive intercept."] if subset else []),
     "",
-    "Rows 2 and 4 are fitted on every training patient, so on the feature subset (a higher-risk group) they "
-    "under-predict a little; that is the positive intercept.",
-    "",
-    "## Decision curve (split 0, feature subset): net benefit per 100 patients",
+    f"## Decision curve (split 0, {WHO}): net benefit per 100 patients",
     "",
     "| Threshold | Treat all | Row 2, age + sex | Row 5, + Lima features | Row 5 minus row 2 (95% CI) | Share flagged by row 5 |",
     "|---|---|---|---|---|---|",
@@ -146,7 +154,7 @@ L += [
     "",
     "Treat none is 0 at every threshold. Net benefit as in Vickers and Elkin 2006, using `../decision-curves/netbenefit.py`.",
     "",
-    "## Subgroups (split 0, feature subset)",
+    f"## Subgroups (split 0, {WHO})",
     "",
     "| Subgroup | Patients | Deaths | Row 2 | Row 4 | Row 5 | Row 5 minus row 2 (95% CI) |",
     "|---|---|---|---|---|---|---|",
@@ -173,7 +181,7 @@ for k, (num, label) in NAMES.items():
              f"({rng(sa['test_with_features']['auc_ci95'][k])}) |")
 L += [
     "",
-    f"Feature subset of the test split in both columns. Sensitivity A test set: "
+    f"{'Feature subset of the test split in both columns. ' if subset else ''}Sensitivity A test set: "
     f"{sa['test_with_features']['patients']:,} patients, {sa['test_with_features']['deaths']} deaths.",
     "",
     "## Row 5 details",
@@ -199,14 +207,17 @@ L += [
     f"6. Stop rule: largest row 5 AUC over the five splits is {ch['stop_rule_row5_not_above_0.86']['largest_row5_auc']:.3f}, "
     "not above 0.86. PASS.",
     "7. Every ridge fit converged and the chosen penalty is inside the grid. PASS.",
+    *([f"8. Patients without outcome-exam features: {ch['8_every_patient_has_outcome_exam_features']['patients_without']}; "
+       "rows 1 to 4 give the same AUC on the whole test split and on the patients with features, every split. PASS."]
+      if "8_every_patient_has_outcome_exam_features" in ch else []),
     "",
     "## Limits",
     "",
     "- Our splits are not the authors' split. Nothing here is a head-to-head comparison with CSFM.",
     "- How the authors labelled patients followed for less than a year is not public (UNVERIFIED). The two readings "
     "tried here change the AUCs only in the third decimal.",
-    f"- Row 5 uses {fe['main_cohort_with']:,} of the {co['deaths_1y'] + co['survivors_1y']:,} main-cohort patients; "
-    f"the left-out group holds {fe['deaths_1y_without']} of the {co['deaths_1y']:,} deaths.",
+    *([f"- Row 5 uses {fe['main_cohort_with']:,} of the {co['deaths_1y'] + co['survivors_1y']:,} main-cohort patients; "
+       f"the left-out group holds {fe['deaths_1y_without']} of the {co['deaths_1y']:,} deaths."] if subset else []),
     "- Row 5 is a linear model on a frozen network's last layer. It says what that network already encodes, not what "
     "a fine-tuned network could reach.",
     "- One cohort, in Brazil. Death within one year is rare here (about 1.25%), so average precision is low for every row.",

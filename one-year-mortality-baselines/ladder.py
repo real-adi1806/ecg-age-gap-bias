@@ -195,12 +195,13 @@ def calibration_slope_ci(y, p, B, rng):
 # ---------------------------------------------------------------------------
 # the saved network features
 # ---------------------------------------------------------------------------
-def load_features(feat_dir, exam_ids, parts=range(18), n_features=5120):
+def load_features(feat_dir, exam_ids, parts=range(18), n_features=5120, prefixes=("code_part",)):
     """
-    Rows of the saved Lima features (code_part{k}_feat.npy, with code_part{k}_ids.npy holding the exam ids) for the
+    Rows of the saved Lima features ({prefix}{k}_feat.npy, with {prefix}{k}_ids.npy holding the exam ids) for the
     exams in `exam_ids`, matched on EXAM id, not patient id, so a feature row is only ever used for the exam the
-    outcome is attached to. Parts are memory-mapped and copied one at a time.
-    Returns (X float32 [n_found, n_features], row) where row[i] is the row of X for exam_ids[i], or -1 if absent.
+    outcome is attached to. `code_part` files hold each patient's lowest exam id; `code_outcome_part` files, written
+    by extract_outcome_exams.py, hold the outcome exams the first set lacks. Parts are memory-mapped and copied one at
+    a time. Returns (X float32 [n_found, n_features], row) where row[i] is the row of X for exam_ids[i], or -1 if absent.
     """
     exam_ids = np.asarray(exam_ids)
     where = pd.Series(np.arange(len(exam_ids)), index=exam_ids)
@@ -208,15 +209,15 @@ def load_features(feat_dir, exam_ids, parts=range(18), n_features=5120):
         raise ValueError("exam ids must be unique")
     row = np.full(len(exam_ids), -1, dtype=np.int64)
     chunks, n = [], 0
-    for k in parts:
-        ids = np.load(f"{feat_dir}/code_part{k}_ids.npy")
-        feat = np.load(f"{feat_dir}/code_part{k}_feat.npy", mmap_mode="r")
+    for prefix, k in ((p, k) for p in prefixes for k in parts):
+        ids = np.load(f"{feat_dir}/{prefix}{k}_ids.npy")
+        feat = np.load(f"{feat_dir}/{prefix}{k}_feat.npy", mmap_mode="r")
         if feat.shape != (len(ids), n_features):
-            raise ValueError(f"part {k}: features {feat.shape} do not match {len(ids)} ids")
+            raise ValueError(f"{prefix}{k}: features {feat.shape} do not match {len(ids)} ids")
         keep = np.where(np.isin(ids, exam_ids))[0]
         target = where.loc[ids[keep]].values
         if np.any(row[target] != -1):
-            raise ValueError(f"part {k}: an exam id appears twice in the feature files")
+            raise ValueError(f"{prefix}{k}: an exam id appears twice in the feature files")
         row[target] = n + np.arange(len(keep))
         chunks.append(np.asarray(feat[keep], dtype=np.float32))
         n += len(keep)

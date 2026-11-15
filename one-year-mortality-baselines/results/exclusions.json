@@ -1,0 +1,542 @@
+{
+ "flow": {
+  "exams": 345779,
+  "patients": 233770,
+  "patients_with_outcome": 233647,
+  "patients_without_outcome": 123,
+  "exams_of_patients_without_outcome": 190,
+  "outcome_rows_per_patient_max": 1,
+  "deaths_all": 2812,
+  "deaths_all_pct": 1.2035249757112225,
+  "short_follow_up": 8778,
+  "deaths_in_short": 0,
+  "main": 224869,
+  "deaths_main": 2812,
+  "deaths_main_pct": 1.2505058500727089,
+  "lowest_id_features": 217932,
+  "extracted": 15715,
+  "left_out_v1": 15715,
+  "deaths_left_out_v1": 32,
+  "deaths_left_out_v1_pct": 0.20362710785873367,
+  "kept_v1": 209154,
+  "deaths_kept_v1": 2780,
+  "deaths_kept_v1_pct": 1.3291641565545005,
+  "overlap_short_and_left_out": 0,
+  "splits": {
+   "train": {
+    "n": 179868,
+    "deaths": 2250
+   },
+   "val": {
+    "n": 22521,
+    "deaths": 281
+   },
+   "test": {
+    "n": 22480,
+    "deaths": 281
+   }
+  },
+  "test_patients": 22480,
+  "test_deaths": 281,
+  "test_patients_v1": 20892,
+  "test_deaths_v1": 278
+ },
+ "order": {
+  "n": 15715,
+  "age": {
+   "older": 14734,
+   "same": 904,
+   "younger": 77
+  },
+  "id": {
+   "higher": 0,
+   "lower": 15715,
+   "same exam": 0
+  },
+  "outcome_is_min_age_excluded": 15563,
+  "kept_multi_n": 50223,
+  "outcome_is_min_age_kept_multi": 49895,
+  "n_all": 233647,
+  "age_gap_years_median_excluded": 3.0,
+  "min_exams_excluded": 2,
+  "outcome_exam_is_lowest_id": 217932
+ },
+ "chars": {
+  "all": {
+   "n": 233647,
+   "deaths": 2812,
+   "deaths_pct": 1.2035249757112225,
+   "age_mean": 50.740493137082865,
+   "age_sd": 19.820654444859223,
+   "age_q": [
+    34.0,
+    51.0,
+    68.0
+   ],
+   "male_pct": 40.54663659280881,
+   "timey_q": [
+    2.104108,
+    3.457531,
+    5.208215
+   ],
+   "timey_mean": 3.676904632882634,
+   "exams_q": [
+    1.0,
+    1.0,
+    2.0
+   ],
+   "multi_pct": 28.630369745813127,
+   "gap_mean": 1.1638707923311662,
+   "gap_sd": 10.993959255227916,
+   "1dAVb": 1.4406348037851973,
+   "RBBB": 2.4293057475593525,
+   "LBBB": 1.4440587724216447,
+   "SB": 1.5656096590155235,
+   "ST": 2.2260076097702948,
+   "AF": 1.4967022902070217,
+   "normal_ecg": 39.434702778122556
+  },
+  "main": {
+   "n": 224869,
+   "deaths": 2812,
+   "deaths_pct": 1.2505058500727089,
+   "age_mean": 50.844745162739194,
+   "age_sd": 19.813223885980946,
+   "age_q": [
+    34.0,
+    51.0,
+    68.0
+   ],
+   "male_pct": 40.57073229302394,
+   "timey_q": [
+    2.252053,
+    3.558901,
+    5.301366
+   ],
+   "timey_mean": 3.786195313902889,
+   "exams_q": [
+    1.0,
+    1.0,
+    2.0
+   ],
+   "multi_pct": 29.322850192778905,
+   "gap_mean": 1.1522921373057202,
+   "gap_sd": 10.995214479307476,
+   "1dAVb": 1.4466200321075826,
+   "RBBB": 2.4641013212136844,
+   "LBBB": 1.4524011757956856,
+   "SB": 1.5826992604583114,
+   "ST": 2.2092862955765358,
+   "AF": 1.5151043496435703,
+   "normal_ecg": 38.681632417096175
+  },
+  "excluded": {
+   "n": 15715,
+   "deaths": 32,
+   "deaths_pct": 0.20362710785873367,
+   "age_mean": 55.51924912503977,
+   "age_sd": 17.60015599645741,
+   "age_q": [
+    42.0,
+    57.0,
+    70.0
+   ],
+   "male_pct": 37.613744829780465,
+   "timey_q": [
+    5.698625,
+    6.126022,
+    6.764378
+   ],
+   "timey_mean": 6.090860966293392,
+   "exams_q": [
+    2.0,
+    3.0,
+    4.0
+   ],
+   "multi_pct": 100.0,
+   "gap_mean": 0.3055049123958002,
+   "gap_sd": 10.860498567022864,
+   "1dAVb": 1.8390073178491888,
+   "RBBB": 4.0470887686923325,
+   "LBBB": 1.8771874005727014,
+   "SB": 1.9726376073814826,
+   "ST": 1.7562838052815781,
+   "AF": 1.8071905822462615,
+   "normal_ecg": 0.12090359529112313
+  },
+  "kept": {
+   "n": 209154,
+   "deaths": 2780,
+   "deaths_pct": 1.3291641565545005,
+   "age_mean": 50.4935215200283,
+   "age_sd": 19.925394037580343,
+   "age_q": [
+    33.0,
+    50.0,
+    68.0
+   ],
+   "male_pct": 40.792908574543155,
+   "timey_q": [
+    2.169861,
+    3.383559,
+    4.72602351285739
+   ],
+   "timey_mean": 3.6130318997328668,
+   "exams_q": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "multi_pct": 24.01245015634413,
+   "gap_mean": 1.215916362706427,
+   "gap_sd": 11.002663580627837,
+   "1dAVb": 1.4171376115206977,
+   "RBBB": 2.3451619380934625,
+   "LBBB": 1.4204844277422377,
+   "SB": 1.5534008433976878,
+   "ST": 2.2433231016380275,
+   "AF": 1.4931581514099659,
+   "normal_ecg": 41.57893227000201
+  },
+  "test": {
+   "n": 22480,
+   "deaths": 281,
+   "deaths_pct": 1.25,
+   "age_mean": 50.691903914590746,
+   "age_sd": 19.82672854616455,
+   "age_q": [
+    34.0,
+    51.0,
+    68.0
+   ],
+   "male_pct": 40.453736654804274,
+   "timey_q": [
+    2.254793,
+    3.558901,
+    5.263009
+   ],
+   "timey_mean": 3.7848297947968947,
+   "exams_q": [
+    1.0,
+    1.0,
+    2.0
+   ],
+   "multi_pct": 29.92437722419929,
+   "gap_mean": 1.1607884877802492,
+   "gap_sd": 10.879919643072254,
+   "1dAVb": 1.4056939501779357,
+   "RBBB": 2.446619217081851,
+   "LBBB": 1.4501779359430604,
+   "SB": 1.5569395017793595,
+   "ST": 2.26423487544484,
+   "AF": 1.5124555160142348,
+   "normal_ecg": 38.91459074733096
+  }
+ },
+ "smd": {
+  "deaths": -0.1293323935413427,
+  "age": 0.26734355771194224,
+  "male": -0.06515301540580679,
+  "timey": 1.7583784494528696,
+  "multi": 2.515746875925128,
+  "gap": -0.08328092684740557,
+  "1dAVb": 0.03333941509072234,
+  "RBBB": 0.09686845208695802,
+  "LBBB": 0.03586880463265717,
+  "SB": 0.03185959539886666,
+  "ST": -0.034794926504153376,
+  "AF": 0.024651749644300565,
+  "normal_ecg": -1.1866545271255269
+ },
+ "missing": {
+  "age": 0,
+  "is_male": 0,
+  "nn_predicted_age": 0,
+  "timey": 0,
+  "death": 0,
+  "1dAVb": 0,
+  "RBBB": 0,
+  "LBBB": 0,
+  "SB": 0,
+  "ST": 0,
+  "AF": 0,
+  "normal_ecg": 0
+ },
+ "versions": {
+  "by_split": {
+   "0": {
+    "v1": {
+     "row1_age": 0.7986969112979724,
+     "row2_age_sex": 0.8089468950695657,
+     "row3_age_sex_rhythm": 0.8247344299780899,
+     "row4_age_sex_gap": 0.8140872864917535,
+     "row5_age_sex_lima": 0.8432951029299778,
+     "row5b_lima_only": 0.8241691404807657
+    },
+    "v2": {
+     "row1_age": 0.7948981863983806,
+     "row2_age_sex": 0.8056192297463305,
+     "row3_age_sex_rhythm": 0.8208707102480811,
+     "row4_age_sex_gap": 0.8108552708042538,
+     "row5_age_sex_lima": 0.8402059244437127,
+     "row5b_lima_only": 0.8211949369653565
+    },
+    "v1_all_rows14": {
+     "row1_age": 0.7948981863983806,
+     "row2_age_sex": 0.8056192297463305,
+     "row3_age_sex_rhythm": 0.8208707102480811,
+     "row4_age_sex_gap": 0.8108552708042538
+    }
+   },
+   "1": {
+    "v1": {
+     "row1_age": 0.77304653889922,
+     "row2_age_sex": 0.7796316855866108,
+     "row3_age_sex_rhythm": 0.8016094673735047,
+     "row4_age_sex_gap": 0.7838619584223819,
+     "row5_age_sex_lima": 0.8292611507396819,
+     "row5b_lima_only": 0.8076746336284659
+    },
+    "v2": {
+     "row1_age": 0.7697576979422227,
+     "row2_age_sex": 0.7766625576800005,
+     "row3_age_sex_rhythm": 0.7968111700359556,
+     "row4_age_sex_gap": 0.7803042572465945,
+     "row5_age_sex_lima": 0.8258681936398012,
+     "row5b_lima_only": 0.8036582796882297
+    },
+    "v1_all_rows14": {
+     "row1_age": 0.7697576979422227,
+     "row2_age_sex": 0.7766625576800005,
+     "row3_age_sex_rhythm": 0.7968111700359556,
+     "row4_age_sex_gap": 0.7803042572465945
+    }
+   },
+   "2": {
+    "v1": {
+     "row1_age": 0.8021659275732523,
+     "row2_age_sex": 0.8051906380882333,
+     "row3_age_sex_rhythm": 0.8210033288776658,
+     "row4_age_sex_gap": 0.8119743396693807,
+     "row5_age_sex_lima": 0.8468353569393252,
+     "row5b_lima_only": 0.8327003258598267
+    },
+    "v2": {
+     "row1_age": 0.8007927910340766,
+     "row2_age_sex": 0.8031691639570906,
+     "row3_age_sex_rhythm": 0.8173730766276658,
+     "row4_age_sex_gap": 0.8098790451624466,
+     "row5_age_sex_lima": 0.8461634162420953,
+     "row5b_lima_only": 0.8318371726106659
+    },
+    "v1_all_rows14": {
+     "row1_age": 0.8007927910340766,
+     "row2_age_sex": 0.8031691639570906,
+     "row3_age_sex_rhythm": 0.8173730766276658,
+     "row4_age_sex_gap": 0.8098790451624466
+    }
+   },
+   "3": {
+    "v1": {
+     "row1_age": 0.7900933726339027,
+     "row2_age_sex": 0.7941354425919032,
+     "row3_age_sex_rhythm": 0.8094468227950414,
+     "row4_age_sex_gap": 0.8072760815213005,
+     "row5_age_sex_lima": 0.8367491971510999,
+     "row5b_lima_only": 0.8305128276247585
+    },
+    "v2": {
+     "row1_age": 0.7892602748499854,
+     "row2_age_sex": 0.7935535549159558,
+     "row3_age_sex_rhythm": 0.8069574755112906,
+     "row4_age_sex_gap": 0.8064783894895701,
+     "row5_age_sex_lima": 0.8344158937428195,
+     "row5b_lima_only": 0.8277964364774688
+    },
+    "v1_all_rows14": {
+     "row1_age": 0.7892602748499854,
+     "row2_age_sex": 0.7935535549159558,
+     "row3_age_sex_rhythm": 0.8069574755112906,
+     "row4_age_sex_gap": 0.8064783894895701
+    }
+   },
+   "4": {
+    "v1": {
+     "row1_age": 0.8125296959861992,
+     "row2_age_sex": 0.8168870217619149,
+     "row3_age_sex_rhythm": 0.8271067920746655,
+     "row4_age_sex_gap": 0.8218839533942273,
+     "row5_age_sex_lima": 0.843749162420902,
+     "row5b_lima_only": 0.8232793384160678
+    },
+    "v2": {
+     "row1_age": 0.8101326186352015,
+     "row2_age_sex": 0.8151849750260273,
+     "row3_age_sex_rhythm": 0.823480222810097,
+     "row4_age_sex_gap": 0.8202787566770133,
+     "row5_age_sex_lima": 0.8423738343927282,
+     "row5b_lima_only": 0.8237083025855143
+    },
+    "v1_all_rows14": {
+     "row1_age": 0.8101326186352015,
+     "row2_age_sex": 0.8151849750260273,
+     "row3_age_sex_rhythm": 0.823480222810097,
+     "row4_age_sex_gap": 0.8202787566770133
+    }
+   }
+  },
+  "split0_ci": {
+   "v1": {
+    "row1_age": [
+     0.7748550015829959,
+     0.8227927257647901
+    ],
+    "row2_age_sex": [
+     0.7858717633010761,
+     0.8315134069163224
+    ],
+    "row3_age_sex_rhythm": [
+     0.8034054815056285,
+     0.8481950981474515
+    ],
+    "row4_age_sex_gap": [
+     0.7910217355907492,
+     0.8366042677456341
+    ],
+    "row5_age_sex_lima": [
+     0.8211707637759932,
+     0.8654834208983998
+    ],
+    "row5b_lima_only": [
+     0.799963206553866,
+     0.8484687503801558
+    ]
+   },
+   "v2": {
+    "row1_age": [
+     0.7693680792339083,
+     0.8195490434565151
+    ],
+    "row2_age_sex": [
+     0.7829372900788093,
+     0.8287247262332215
+    ],
+    "row3_age_sex_rhythm": [
+     0.7976668293387313,
+     0.8427481068082292
+    ],
+    "row4_age_sex_gap": [
+     0.7885128195515614,
+     0.8334699328877715
+    ],
+    "row5_age_sex_lima": [
+     0.8184191763006144,
+     0.8623736523706866
+    ],
+    "row5b_lima_only": [
+     0.7985568738718258,
+     0.8451087940252843
+    ]
+   }
+  },
+  "split0_row5_minus_row2": {
+   "v1": [
+    0.03434820786041204,
+    0.01736914462277944,
+    0.05193233740005852
+   ],
+   "v2": [
+    0.03458669469738218,
+    0.01799071199074638,
+    0.05255136905197053
+   ]
+  },
+  "mean": {
+   "v1": {
+    "row1_age": 0.7953064892781093,
+    "row2_age_sex": 0.8009583366196456,
+    "row3_age_sex_rhythm": 0.8167801682197935,
+    "row4_age_sex_gap": 0.8078167238998087,
+    "row5_age_sex_lima": 0.8399779940361973,
+    "row5b_lima_only": 0.8236672532019769
+   },
+   "v2": {
+    "row1_age": 0.7929683137719734,
+    "row2_age_sex": 0.798837896265081,
+    "row3_age_sex_rhythm": 0.813098531046618,
+    "row4_age_sex_gap": 0.8055591438759757,
+    "row5_age_sex_lima": 0.8378054524922314,
+    "row5b_lima_only": 0.8216390256654471
+   }
+  },
+  "rows14_all_test_v1_vs_v2_max_abs_diff": 0.0,
+  "v1_rows14_all_minus_kept_max_abs_diff": {
+   "row1_age": 0.0037987248995917655,
+   "row2_age_sex": 0.0033276653232352515,
+   "row3_age_sex_rhythm": 0.004798297337549107,
+   "row4_age_sex_gap": 0.0035577011757874644
+  }
+ },
+ "extraction": {
+  "outcome_exams_without_saved_features": 15715,
+  "extracted": 15715,
+  "per_part": {
+   "0": 1010,
+   "1": 1014,
+   "2": 955,
+   "3": 1012,
+   "4": 989,
+   "5": 947,
+   "6": 1054,
+   "7": 1076,
+   "8": 1023,
+   "9": 1020,
+   "10": 937,
+   "11": 1051,
+   "12": 1048,
+   "13": 984,
+   "14": 975,
+   "15": 610,
+   "16": 6,
+   "17": 4
+  },
+  "agreement_with_nn_predicted_age": {
+   "pearson_r": 0.9999999999849136,
+   "mean_abs_diff_years": 9.26545940274488e-05,
+   "max_abs_diff_years": 0.0005491992187529604
+  },
+  "seconds": 45.6
+ },
+ "filters_tried_for_344723": {
+  "all exams": 345779,
+  "exams of patients with an outcome": 345589,
+  "exams with death and timey": 233647,
+  "exams of patients with two or more exams": 178938,
+  "exams with age between 16 and 85": 344470,
+  "exams with timey above 0 or missing": 345732
+ },
+ "normal": {
+  "multi_outcome_not_lowest": {
+   "n": 15715,
+   "normal_pct": 0.12090359529112313
+  },
+  "multi_outcome_is_lowest": {
+   "n": 51179,
+   "normal_pct": 39.55528634791614
+  },
+  "non_outcome_exams": {
+   "n": 112132,
+   "normal_pct": 37.91870295722898
+  },
+  "neither_pct": {
+   "dropped": 87.6423798918231,
+   "kept_multi": 49.09901837803397,
+   "kept_single": 48.7016378176693
+  }
+ },
+ "seed": 20261114,
+ "extract_line": "first = df.sort_values(\"exam_id\").drop_duplicates(\"patient_id\")  # first exam per patient",
+ "zenodo_quote": "\"death\": true if the patient dies in the follow-up time. This data is available only in the first exam of the patient. Other exams will have this as an empty field",
+ "lima_quote": "Only the first patient exam is considered in all the analysis with this cohort and the remaining exams from the patients are removed from the remaining data and not used in the analysis.",
+ "checks": "all counts match results.json, results-v1.json and outcome_extraction.json; rows 1 to 4 identical"
+}

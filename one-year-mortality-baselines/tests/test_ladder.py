@@ -140,6 +140,26 @@ def test_load_features_matches_on_exam_id():
     assert [float(X[row[i], 0]) for i in (0, 1, 3)] == [9.0, 2.0, 5.0]
 
 
+def test_load_features_reads_both_prefixes_and_refuses_duplicates():
+    with tempfile.TemporaryDirectory() as d:
+        np.save(f"{d}/code_part0_ids.npy", np.array([5, 7]))
+        np.save(f"{d}/code_part0_feat.npy", np.array([[5, 5], [7, 7]], dtype=np.float32))
+        np.save(f"{d}/code_outcome_part0_ids.npy", np.array([100]))     # the outcome exam the first set lacks
+        np.save(f"{d}/code_outcome_part0_feat.npy", np.array([[100, 100]], dtype=np.float32))
+        both = ("code_part", "code_outcome_part")
+        X, row = L.load_features(d, [100, 5], parts=range(1), n_features=2, prefixes=both)
+        assert list(row >= 0) == [True, True]
+        assert [float(X[row[i], 0]) for i in (0, 1)] == [100.0, 5.0]
+        np.save(f"{d}/code_outcome_part0_ids.npy", np.array([7]))       # an exam already in the first set
+        np.save(f"{d}/code_outcome_part0_feat.npy", np.array([[7, 7]], dtype=np.float32))
+        try:
+            L.load_features(d, [7], parts=range(1), n_features=2, prefixes=both)
+        except ValueError as e:
+            assert "twice" in str(e)
+        else:
+            raise AssertionError("a duplicated exam id was not refused")
+
+
 def test_netbenefit_import_and_hand_value():
     # the reused decision-curve code: p >= 0.5 treats rows 0,1,2; TP 2, FP 1, n 10, odds 1: 0.1
     y = np.array([1, 1, 0, 0, 1, 0, 0, 0, 0, 0])
